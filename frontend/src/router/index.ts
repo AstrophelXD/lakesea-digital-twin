@@ -56,13 +56,13 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'monitor',
         name: 'monitor',
-        component: () => import('@/views/PlaceholderView.vue'),
+        component: () => import('@/views/MonitorView.vue'),
         meta: { title: '数字孪生监控', menu: 'monitor' },
       },
       {
         path: 'alarms',
         name: 'alarms',
-        component: () => import('@/views/PlaceholderView.vue'),
+        component: () => import('@/views/AlarmView.vue'),
         meta: { title: '告警管理', menu: 'alarms' },
       },
       {

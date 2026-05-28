@@ -16,6 +16,10 @@ export const STATUS_LABELS: Record<string, string> = {
   PENDING_PREPARE: '待准备',
   READY: '已准备',
   RUNNING: '执行中',
+  PENDING: '待处理',
+  PROCESSING: '处理中',
+  RESOLVED: '已处理',
+  IGNORED: '已忽略',
 }
 
 export function statusLabel(status: string) {
@@ -32,6 +36,8 @@ export function statusTagType(status: string): '' | 'success' | 'warning' | 'dan
     CANCELLED: 'info',
     RUNNING: 'success',
     READY: '',
+    PENDING: 'warning',
+    RESOLVED: 'success',
   }
   return map[status] || 'info'
 }

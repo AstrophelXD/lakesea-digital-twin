@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
   archiveExperiment,
@@ -11,6 +12,7 @@ import {
 } from '@/api/experiment'
 import { statusLabel, statusTagType } from '@/utils/format'
 
+const router = useRouter()
 const loading = ref(false)
 const tableData = ref<ExperimentTask[]>([])
 const total = ref(0)
@@ -58,7 +60,7 @@ onMounted(load)
           <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="320" fixed="right">
+      <el-table-column label="操作" width="380" fixed="right">
         <template #default="{ row }">
           <el-button
             v-if="row.status === 'PENDING_PREPARE'"
@@ -75,6 +77,14 @@ onMounted(load)
             @click="action(startExperiment, row, '试验已启动')"
           >
             启动试验
+          </el-button>
+          <el-button
+            v-if="row.status === 'RUNNING'"
+            link
+            type="primary"
+            @click="router.push({ name: 'monitor', query: { experimentId: String(row.id) } })"
+          >
+            打开监控
           </el-button>
           <el-button
             v-if="row.status === 'RUNNING'"

@@ -47,6 +47,7 @@ def init_db() -> None:
     # 延迟导入，避免循环依赖
     from app.models import (  # noqa: F401
         experiment,
+        monitor,
         reservation,
         resource,
         user,

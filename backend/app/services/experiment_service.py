@@ -63,9 +63,12 @@ class ExperimentService:
     def finish(self, task_id: int) -> ExperimentOut:
         from datetime import datetime
 
+        from app.services.monitor_service import MonitorService
+
         task = self._get_task_or_404(task_id)
         if task.status != RUNNING:
             raise HTTPException(status_code=400, detail="仅执行中状态可完成试验")
+        MonitorService.request_stop(task_id)
         task.status = TASK_COMPLETED
         task.actual_end_time = datetime.now()
         reservation = self.reservation_repo.get_by_id(task.reservation_id)

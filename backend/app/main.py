@@ -4,11 +4,14 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.alarm_api import router as alarm_router
 from app.api.auth_api import router as auth_router
 from app.api.experiment_api import router as experiment_router
-from app.api.user_api import router as user_router
+from app.api.monitor_api import router as monitor_router
 from app.api.reservation_api import router as reservation_router
 from app.api.resource_api import router as resource_router
+from app.api.user_api import router as user_router
+from app.api.ws_monitor import router as ws_router
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.core.response import error
@@ -42,6 +45,9 @@ app.include_router(resource_router)
 app.include_router(reservation_router)
 app.include_router(experiment_router)
 app.include_router(user_router)
+app.include_router(monitor_router)
+app.include_router(alarm_router)
+app.include_router(ws_router)
 
 
 @app.get("/api/health")
