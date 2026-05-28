@@ -1,0 +1,64 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from app.api.auth_api import router as auth_router
+from app.api.experiment_api import router as experiment_router
+from app.api.user_api import router as user_router
+from app.api.reservation_api import router as reservation_router
+from app.api.resource_api import router as resource_router
+from app.core.config import get_settings
+from app.core.database import init_db
+from app.core.response import error
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 本地 SQLite：ORM 自动建表；达梦生产请执行 scripts/init_db.sql
+    init_db()
+    yield
+
+
+settings = get_settings()
+
+app = FastAPI(
+    title=settings.app_name,
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origin_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth_router)
+app.include_router(resource_router)
+app.include_router(reservation_router)
+app.include_router(experiment_router)
+app.include_router(user_router)
+
+
+@app.get("/api/health")
+def health():
+    return {"code": 200, "message": "ok", "data": {"status": "up"}}
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    code = exc.status_code if exc.status_code >= 400 else 400
+    return JSONResponse(status_code=200, content=error(code, str(exc.detail)))
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    if settings.debug:
+        message = str(exc)
+    else:
+        message = "服务器内部错误"
+    return JSONResponse(status_code=200, content=error(500, message))
