@@ -1,0 +1,117 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE / workspace
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs
+*.log
+logs/
+log/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+
+# Frontend dependencies / build output
+node_modules/
+frontend/node_modules/
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+.python-version
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+pip-wheel-metadata/
+
+# Backend runtime / local databases
+*.sqlite
+*.sqlite3
+*.db
+instance/
+
+# Packaging
+*.egg-info/
+.eggs/
+*.egg
+wheelhouse/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# Generated data / uploads / archives
+uploads/
+storage/
+data/
+runtime/
+artifacts/
+exports/
+reports/
+screenshots/
+
+# Media and captured experiment assets that should stay local by default
+videos/
+recordings/
+captures/
+snapshots/
+
+# DM8 / database client exports and backups
+*.dmp
+*.bak.sql
+*.sql.bak
+*.dump
+db_backups/
+
+# Test output / mock runtime files
+playwright-report/
+test-results/
+.cache/
+
+# Optional local infrastructure
+.docker/
+docker-data/
+
+# Keep repository examples and docs
+!docs/
+!backend/scripts/*.sql

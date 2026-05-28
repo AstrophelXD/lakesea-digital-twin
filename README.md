@@ -1,0 +1,225 @@
+# 🌊 校园湖海试验场数字孪生全景监控与数据管理系统
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Course-应用软件架构课程设计-0F766E?style=for-the-badge" alt="Course Badge" />
+  <img src="https://img.shields.io/badge/Frontend-Vue%203%20%2B%20TypeScript-42B883?style=for-the-badge" alt="Frontend Badge" />
+  <img src="https://img.shields.io/badge/Backend-FastAPI%20%2B%20Python%203.11-009688?style=for-the-badge" alt="Backend Badge" />
+  <img src="https://img.shields.io/badge/Database-DM8-国产数据库-blue?style=for-the-badge" alt="Database Badge" />
+  <img src="https://img.shields.io/badge/Realtime-WebSocket%20%2F%20MQTT-2563EB?style=for-the-badge" alt="Realtime Badge" />
+  <img src="https://img.shields.io/badge/AI-DeepSeek-7C3AED?style=for-the-badge" alt="AI Badge" />
+</p>
+
+<p align="center">
+  面向高校船舶与海洋工程湖海试验场的课程设计项目，聚焦
+  <strong>预约审批、资源管理、数字孪生监控、实时数据采集、异常告警、试验归档与 AI 分析</strong>。
+</p>
+
+---
+
+## ✨ 项目简介
+
+本项目服务于《应用软件架构课程设计》，目标不是做一个完整工业级平台，而是在课程设计范围内，完成一个：
+
+- 架构清晰的前后端分离系统
+- 具备主从表业务亮点的管理平台
+- 能展示实时监控与数字孪生效果的可演示项目
+- 能体现国产数据库 DM8 与 DeepSeek API 集成能力的综合案例
+
+系统围绕试验全流程展开：
+
+```text
+预约草稿 → 提交预约 → 教师审核 → 主任审批 → 生成试验任务
+→ 任务准备 → 现场试验 → 实时监控与告警 → 数据归档 → AI 分析报告
+```
+
+---
+
+## 🧭 核心亮点
+
+- 🔐 登录与角色权限管理：支持管理员、主任、教师、学生/研究员、维护人员等角色。
+- 🧾 主从表业务设计：`EXP_RESERVATION` + `EXP_RESERVATION_RESOURCE`，满足课程设计重点要求。
+- 🛠️ 后端分层架构：遵循 `API → Service → Repository → Model/Database`。
+- 🛰️ 实时监控：通过 WebSocket 推送模型船位置、姿态、电量、阻力等模拟数据。
+- 🚨 异常告警：支持越界、低电量、设备离线、数据突变等告警。
+- 🤖 AI 分析：由后端调用 DeepSeek API 生成试验摘要、异常说明和改进建议。
+- 🗃️ 国产数据库应用：核心业务数据基于达梦 DM8 设计。
+
+---
+
+## 🏗️ 总体架构
+
+```text
+Browser
+  ↓
+Vue 3 + TypeScript + Element Plus + ECharts + Three.js
+  ↓
+FastAPI + WebSocket
+  ↓
+Service / Repository / ORM
+  ↓
+DM8 + File Storage
+  ↓
+DeepSeek API / Simulated Data Source / MQTT(optional)
+```
+
+课程设计 `v1` 统一采用：
+
+- 固定两级审批：教师审核 + 主任审批
+- 资源冲突策略：提交预校验 + 主任审批前终校验
+- 任务状态机：`PENDING_PREPARE → READY → RUNNING → COMPLETED → ARCHIVED`
+- 重要业务数据：默认逻辑删除并保留审计信息
+
+---
+
+## 🧩 功能模块
+
+| 模块 | 说明 |
+| --- | --- |
+| 登录与角色权限 | 用户登录、菜单鉴权、接口权限控制 |
+| 试验预约与审批 | 草稿、提交、教师审核、主任审批、任务生成 |
+| 资源设备管理 | 水池、模型船、传感器、摄像头等资源管理 |
+| 数字孪生监控 | 模型船位置、轨迹、状态、场景可视化 |
+| 实时数据与告警 | WebSocket 推送、曲线刷新、异常告警 |
+| 归档与 AI 分析 | 历史任务、回放、文件、AI 报告 |
+
+---
+
+## 🗂️ 文档导航
+
+当前仓库已优先完成设计文档收敛，后续编码请优先参考以下文件：
+
+- [总体设计文档](./docs/architecture.md)
+- [需求与范围说明](./docs/requirements.md)
+- [数据库详细设计](./docs/database-design.md)
+- [接口详细设计](./docs/api-design.md)
+- [Agent 协作约束](./AGENTS.md)
+
+---
+
+## 🧱 推荐目录结构
+
+```text
+lakesea-digital-twin/
+├── AGENTS.md
+├── README.md
+├── docs/
+│   ├── requirements.md
+│   ├── architecture.md
+│   ├── database-design.md
+│   └── api-design.md
+├── frontend/
+└── backend/
+```
+
+> 当前仓库以文档与设计基线为主，`frontend/` 和 `backend/` 代码骨架可按文档逐步搭建。
+
+---
+
+## 🛠️ 技术栈
+
+### Frontend
+
+- Vue 3
+- TypeScript
+- Vite
+- Element Plus
+- ECharts
+- Three.js / Cesium
+
+### Backend
+
+- Python 3.11
+- FastAPI
+- SQLAlchemy
+- Pydantic
+- Uvicorn
+- WebSocket
+
+### Database & Integration
+
+- 达梦 DM8
+- DeepSeek API
+- MQTT（可选）
+- 本地文件存储
+
+---
+
+## 📌 当前状态
+
+![Status](https://img.shields.io/badge/Status-Design%20Baseline%20Ready-16A34A?style=flat-square)
+![Progress](https://img.shields.io/badge/Progress-Documentation%20First-F59E0B?style=flat-square)
+
+当前版本重点完成了：
+
+- 课程设计业务范围收敛
+- 高风险规则冲突消除
+- 数据库主从表与审批表设计
+- API 边界与状态流转明确
+
+当前尚未完成或尚未提交的内容：
+
+- 前端页面与组件实现
+- FastAPI 后端接口实现
+- DM8 建表脚本与种子数据
+- WebSocket 模拟数据服务
+- DeepSeek API 实际联调
+
+---
+
+## 🚀 计划实现的演示链路
+
+1. 管理员登录查看用户和资源
+2. 学生创建预约草稿并添加多个资源明细
+3. 学生提交预约
+4. 教师审核通过
+5. 主任审批通过并生成试验任务
+6. 启动任务并打开数字孪生监控页
+7. 展示模型船轨迹、实时曲线与告警
+8. 完成试验并进入归档页面
+9. 生成并展示 AI 分析报告
+
+---
+
+## 📖 开发约束
+
+为保证课程设计目标和后续协作一致性，建议实现阶段遵守以下原则：
+
+- 不要绕过 Service 层，复杂业务不得直接写在 API 层
+- 不要删除预约主从表设计
+- 不要在前端暴露 DeepSeek API Key
+- 不要把系统改造成普通设备管理系统
+- 不要过度追求真实硬件接入，课程阶段允许模拟数据
+
+---
+
+## 🗺️ Roadmap
+
+- [x] 统一需求范围与总体设计
+- [x] 明确审批流、资源占用规则、任务状态机
+- [x] 补齐数据库与接口详细设计
+- [ ] 搭建前端 Vue 3 工程骨架
+- [ ] 搭建后端 FastAPI 分层工程骨架
+- [ ] 实现预约审批主从表业务
+- [ ] 实现资源管理与冲突校验
+- [ ] 实现 WebSocket 模拟数据与监控页面
+- [ ] 实现归档与 AI 报告生成
+
+---
+
+## 🤝 适合后续 Coding Agent 的入口
+
+如果后续要继续落代码，建议从以下顺序开始：
+
+1. 搭建 `backend/app` 分层骨架
+2. 实现 `EXP_RESERVATION` / `EXP_RESERVATION_RESOURCE` / `EXP_APPROVAL_LOG`
+3. 实现预约提交与审批状态流转
+4. 实现 `EXPERIMENT_TASK` 与任务状态接口
+5. 搭建前端预约页、审批页、监控页
+6. 最后接入 WebSocket 模拟数据与 AI 报告
+
+---
+
+## 📄 License
+
+本项目用于课程设计与学习交流，默认按仓库所有者课程用途管理。如需开源许可，可后续补充 `LICENSE` 文件。
+
