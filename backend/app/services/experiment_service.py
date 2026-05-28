@@ -4,8 +4,19 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.constants import PENDING_PREPARE, READY, RUNNING, TASK_COMPLETED, TASK_ARCHIVED
+from app.repositories.alarm_repository import AlarmRepository
 from app.repositories.experiment_repository import ExperimentRepository
+from app.repositories.file_repository import FileRepository
 from app.repositories.reservation_repository import ReservationRepository
+from app.repositories.sensor_repository import SensorRepository
+from app.schemas.alarm_schema import AlarmOut
+from app.schemas.archive_schema import (
+    ExperimentFileOut,
+    ExperimentReplayOut,
+    ReplaySensorPoint,
+    ReplayStats,
+    ReplayTrackPoint,
+)
 from app.schemas.common import PageResult
 from app.schemas.experiment_schema import ExperimentOut
 
@@ -15,6 +26,9 @@ class ExperimentService:
         self.db = db
         self.repo = ExperimentRepository(db)
         self.reservation_repo = ReservationRepository(db)
+        self.sensor_repo = SensorRepository(db)
+        self.alarm_repo = AlarmRepository(db)
+        self.file_repo = FileRepository(db)
 
     def list_tasks(
         self, status: Optional[str] = None, page: int = 1, page_size: int = 20
@@ -92,3 +106,46 @@ class ExperimentService:
         self.db.commit()
         self.db.refresh(task)
         return ExperimentOut.model_validate(task)
+
+    def get_replay(self, task_id: int) -> ExperimentReplayOut:
+        task = self._get_task_or_404(task_id)
+        tracks_raw = self.sensor_repo.list_tracks(task_id, 2000)
+        sensors_raw = self.sensor_repo.list_sensor_series(task_id, 2000)
+        alarms_raw, _ = self.alarm_repo.list_alarms(experiment_id=task_id, page_size=200)
+        files_raw = self.file_repo.list_by_experiment(task_id)
+
+        speeds = [float(s.speed) for s in sensors_raw if s.speed is not None]
+        batteries = [float(s.battery) for s in sensors_raw if s.battery is not None]
+        resistances = [float(s.resistance) for s in sensors_raw if s.resistance is not None]
+
+        return ExperimentReplayOut(
+            task=ExperimentOut.model_validate(task),
+            tracks=[
+                ReplayTrackPoint(
+                    timestamp=t.timestamp,
+                    position_x=float(t.position_x or 0),
+                    position_y=float(t.position_y or 0),
+                    heading=float(t.heading) if t.heading else None,
+                )
+                for t in tracks_raw
+            ],
+            sensor_series=[
+                ReplaySensorPoint(
+                    timestamp=s.timestamp,
+                    speed=float(s.speed) if s.speed else None,
+                    battery=float(s.battery) if s.battery else None,
+                    resistance=float(s.resistance) if s.resistance else None,
+                    roll=float(s.roll) if s.roll else None,
+                )
+                for s in sensors_raw
+            ],
+            alarms=[AlarmOut.model_validate(a) for a in alarms_raw],
+            files=[ExperimentFileOut.model_validate(f) for f in files_raw],
+            stats=ReplayStats(
+                point_count=len(sensors_raw),
+                max_speed=max(speeds) if speeds else None,
+                min_battery=min(batteries) if batteries else None,
+                max_resistance=max(resistances) if resistances else None,
+                alarm_count=len(alarms_raw),
+            ),
+        )

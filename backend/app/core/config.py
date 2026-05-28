@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    upload_dir: str = "uploads"
+    deepseek_api_key: str = ""
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_model: str = "deepseek-chat"
+    mock_ai: bool = True
 
     @property
     def cors_origin_list(self) -> List[str]:

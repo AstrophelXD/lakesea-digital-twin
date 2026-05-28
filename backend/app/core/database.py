@@ -46,6 +46,7 @@ def init_db() -> None:
     """根据 ORM 模型创建表（本地 SQLite 开发用；生产达梦请执行 scripts/init_db.sql）。"""
     # 延迟导入，避免循环依赖
     from app.models import (  # noqa: F401
+        archive,
         experiment,
         monitor,
         reservation,

@@ -68,13 +68,13 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'archive',
         name: 'archive',
-        component: () => import('@/views/PlaceholderView.vue'),
+        component: () => import('@/views/ArchiveView.vue'),
         meta: { title: '试验归档', menu: 'archive' },
       },
       {
         path: 'ai-report',
         name: 'ai-report',
-        component: () => import('@/views/PlaceholderView.vue'),
+        component: () => import('@/views/AiReportView.vue'),
         meta: { title: 'AI 分析', menu: 'ai-report' },
       },
     ],

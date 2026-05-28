@@ -97,9 +97,24 @@ onMounted(load)
           <el-button
             v-if="row.status === 'COMPLETED'"
             link
+            @click="router.push({ name: 'archive', query: { experimentId: String(row.id) } })"
+          >
+            查看归档
+          </el-button>
+          <el-button
+            v-if="row.status === 'COMPLETED'"
+            link
             @click="action(archiveExperiment, row, '已归档')"
           >
             归档
+          </el-button>
+          <el-button
+            v-if="row.status === 'COMPLETED' || row.status === 'ARCHIVED'"
+            link
+            type="primary"
+            @click="router.push({ name: 'ai-report', query: { experimentId: String(row.id) } })"
+          >
+            AI 分析
           </el-button>
         </template>
       </el-table-column>

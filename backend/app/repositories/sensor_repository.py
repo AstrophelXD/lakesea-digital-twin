@@ -28,6 +28,17 @@ class SensorRepository:
         )
         return list(reversed(self.db.scalars(stmt).all()))
 
+    def list_sensor_series(
+        self, experiment_id: int, limit: int = 2000
+    ) -> List[SensorData]:
+        stmt = (
+            select(SensorData)
+            .where(SensorData.experiment_id == experiment_id)
+            .order_by(SensorData.timestamp.asc())
+            .limit(limit)
+        )
+        return list(self.db.scalars(stmt).all())
+
     def list_tracks(
         self, experiment_id: int, limit: int = 500
     ) -> List[ShipTrack]:

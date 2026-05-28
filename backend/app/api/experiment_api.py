@@ -49,3 +49,9 @@ def finish_experiment(task_id: int, db: DbSession, _: CurrentUser):
 def archive_experiment(task_id: int, db: DbSession, _: CurrentUser):
     result = ExperimentService(db).archive(task_id)
     return success(result.model_dump(by_alias=True))
+
+
+@router.get("/{task_id}/replay")
+def experiment_replay(task_id: int, db: DbSession, _: CurrentUser):
+    result = ExperimentService(db).get_replay(task_id)
+    return success(result.model_dump(by_alias=True))
