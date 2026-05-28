@@ -111,7 +111,7 @@ lakesea-digital-twin/
 └── backend/
 ```
 
-> 当前仓库以文档与设计基线为主，`frontend/` 和 `backend/` 代码骨架可按文档逐步搭建。
+> 当前仓库已包含完整的前后端实现，本地开发默认使用 SQLite，生产/答辩可切换达梦 DM8。
 
 ---
 
@@ -146,23 +146,25 @@ lakesea-digital-twin/
 
 ## 📌 当前状态
 
-![Status](https://img.shields.io/badge/Status-Design%20Baseline%20Ready-16A34A?style=flat-square)
-![Progress](https://img.shields.io/badge/Progress-Documentation%20First-F59E0B?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Implementation%20Complete-16A34A?style=flat-square)
+![Progress](https://img.shields.io/badge/Progress-Ready%20for%20Demo-2563EB?style=flat-square)
 
-当前版本重点完成了：
+当前版本已完成：
 
-- 课程设计业务范围收敛
-- 高风险规则冲突消除
-- 数据库主从表与审批表设计
-- API 边界与状态流转明确
+- 设计文档与 API/数据库基线
+- 前端 Vue 3 工程与核心业务页面
+- 后端 FastAPI 分层架构与主要接口
+- 试验预约主从表与两级审批流程
+- 资源管理与冲突校验
+- WebSocket 模拟数据与数字孪生监控页
+- 试验归档、轨迹回放与文件管理
+- AI 报告生成（支持 `MOCK_AI` 本地模拟与 DeepSeek API）
 
-当前尚未完成或尚未提交的内容：
+可选后续增强：
 
-- 前端页面与组件实现
-- FastAPI 后端接口实现
-- DM8 建表脚本与种子数据
-- WebSocket 模拟数据服务
-- DeepSeek API 实际联调
+- 达梦 DM8 生产环境联调与部署
+- 真实 DeepSeek API Key 配置（`backend/.env` 中设置 `MOCK_AI=false`）
+- 用户管理页、首页驾驶舱等增强功能
 
 ---
 
@@ -194,28 +196,67 @@ lakesea-digital-twin/
 
 ## 🗺️ Roadmap
 
+### 设计阶段
+
 - [x] 统一需求范围与总体设计
 - [x] 明确审批流、资源占用规则、任务状态机
 - [x] 补齐数据库与接口详细设计
-- [ ] 搭建前端 Vue 3 工程骨架
-- [ ] 搭建后端 FastAPI 分层工程骨架
-- [ ] 实现预约审批主从表业务
-- [ ] 实现资源管理与冲突校验
-- [ ] 实现 WebSocket 模拟数据与监控页面
-- [ ] 实现归档与 AI 报告生成
+
+### 实现阶段
+
+- [x] 搭建前端 Vue 3 工程骨架
+- [x] 搭建后端 FastAPI 分层工程骨架
+- [x] 实现登录鉴权与角色菜单
+- [x] 实现预约审批主从表业务
+- [x] 实现资源管理与冲突校验
+- [x] 实现试验任务状态流转
+- [x] 实现 WebSocket 模拟数据与监控页面
+- [x] 实现告警生成与管理
+- [x] 实现归档、轨迹回放与文件上传
+- [x] 实现 AI 报告生成（Mock / DeepSeek）
+
+### 可选增强
+
+- [ ] 用户管理页面完善
+- [ ] 首页驾驶舱统计
+- [ ] 达梦 DM8 生产环境部署验证
+- [ ] 真实硬件 / MQTT 数据接入
 
 ---
 
-## 🤝 适合后续 Coding Agent 的入口
+## 🚀 快速启动
 
-如果后续要继续落代码，建议从以下顺序开始：
+### 后端
 
-1. 搭建 `backend/app` 分层骨架
-2. 实现 `EXP_RESERVATION` / `EXP_RESERVATION_RESOURCE` / `EXP_APPROVAL_LOG`
-3. 实现预约提交与审批状态流转
-4. 实现 `EXPERIMENT_TASK` 与任务状态接口
-5. 搭建前端预约页、审批页、监控页
-6. 最后接入 WebSocket 模拟数据与 AI 报告
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+pip install -r requirements.txt
+copy .env.example .env
+python -m scripts.seed_db
+uvicorn app.main:app --reload
+```
+
+### 前端
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+详细说明见 [backend/README.md](./backend/README.md) 与 [frontend/README.md](./frontend/README.md)。
+
+### 演示账号（密码均为 `123456`）
+
+| 用户名 | 角色 |
+| --- | --- |
+| `student01` | 学生 |
+| `teacher01` | 教师 |
+| `director01` | 主任 |
+| `admin` | 管理员 |
+| `maintainer01` | 维护人员 |
 
 ---
 
