@@ -55,7 +55,7 @@ class SimRunner:
 
 class MonitorService:
     _runners: dict[int, SimRunner] = {}
-    _tick_interval: float = 0.8
+    _tick_interval: float = 1.0
     _alarm_cooldown_sec: int = 15
 
     def __init__(self, db: Session) -> None:
@@ -274,6 +274,47 @@ class MonitorService:
             raise
         finally:
             db.close()
+
+    async def trigger_demo_alarm(
+        self, experiment_id: int, alarm_type: str
+    ) -> dict[str, Any]:
+        self._ensure_running_task(experiment_id)
+        runner = self.get_runner(experiment_id)
+        state = runner.state
+        mapping = {
+            "LOW_BATTERY": (ALARM_LOW_BATTERY, "HIGH", "演示：电池电量过低"),
+            "OUT_OF_BOUNDARY": (ALARM_OUT_OF_BOUNDARY, "HIGH", "演示：模型船越界"),
+            "DATA_SPIKE": (ALARM_DATA_SPIKE, "MEDIUM", "演示：传感器数据突变"),
+        }
+        if alarm_type not in mapping:
+            raise HTTPException(status_code=400, detail="不支持的告警类型")
+        atype, level, message = mapping[alarm_type]
+        if alarm_type == "LOW_BATTERY":
+            state.battery = 12.0
+        elif alarm_type == "OUT_OF_BOUNDARY":
+            state.x = POOL_WIDTH + 1
+        elif alarm_type == "DATA_SPIKE":
+            state.resistance = state.prev_resistance + 25
+
+        record = AlarmRepository(self.db).create(
+            AlarmRecord(
+                experiment_id=experiment_id,
+                alarm_type=atype,
+                alarm_level=level,
+                alarm_message=message,
+                handle_status="PENDING",
+            )
+        )
+        self.db.commit()
+        frame = self._generate_frame(experiment_id, state)
+        frame["alarm"] = {
+            "id": record.id,
+            "type": atype,
+            "level": level,
+            "message": message,
+        }
+        await ws_manager.broadcast(experiment_id, frame)
+        return frame
 
     def get_snapshot(self, experiment_id: int) -> MonitorSnapshotOut:
         sensor_repo = SensorRepository(self.db)

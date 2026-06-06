@@ -89,8 +89,27 @@ class ReservationOut(BaseModel):
     model_config = {"from_attributes": True, "populate_by_name": True}
 
 
+class ConflictItem(BaseModel):
+    resource_id: int = Field(serialization_alias="resourceId")
+    resource_name: Optional[str] = Field(None, serialization_alias="resourceName")
+    conflict_reservation_no: str = Field(serialization_alias="conflictReservationNo")
+    conflict_exp_name: str = Field(serialization_alias="conflictExpName")
+    start_time: datetime = Field(serialization_alias="startTime")
+    end_time: datetime = Field(serialization_alias="endTime")
+
+    model_config = {"populate_by_name": True}
+
+
+class ConflictCheckResult(BaseModel):
+    has_conflict: bool = Field(serialization_alias="hasConflict")
+    conflicts: List[ConflictItem] = []
+
+    model_config = {"populate_by_name": True}
+
+
 class ReservationDetailOut(ReservationOut):
     resources: List[ReservationResourceOut] = []
     approval_logs: List[ApprovalLogOut] = Field(default_factory=list, serialization_alias="approvalLogs")
+    experiment_task_id: Optional[int] = Field(None, serialization_alias="experimentTaskId")
 
     model_config = {"from_attributes": True, "populate_by_name": True}

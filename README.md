@@ -215,12 +215,22 @@ lakesea-digital-twin/
 - [x] 实现归档、轨迹回放与文件上传
 - [x] 实现 AI 报告生成（Mock / DeepSeek）
 
+### 顶尖优秀版增强（已完成）
+
+- [x] 用户管理真实页面（`UserManageView.vue`）
+- [x] 首页驾驶舱统计与 ECharts 图表
+- [x] 达梦 DM8 部署文档与外键约束（见 [docs/dm8-deployment.md](./docs/dm8-deployment.md)）
+- [x] 数据库健康检查 `GET /api/health/db`
+- [x] 预约冲突检测、审批流程展示、任务跳转
+- [x] 数字孪生监控四区布局 + 演示告警按钮
+- [x] 归档时间轴回放 + AI 报告工作流
+- [x] 答辩演示脚本与截图清单
+
 ### 可选增强
 
-- [ ] 用户管理页面完善
-- [ ] 首页驾驶舱统计
-- [ ] 达梦 DM8 生产环境部署验证
 - [ ] 真实硬件 / MQTT 数据接入
+- [ ] 操作审计日志（`SYS_OPERATION_LOG`）
+- [ ] 一键演示数据重置脚本
 
 ---
 
@@ -247,6 +257,33 @@ npm run dev
 ```
 
 详细说明见 [backend/README.md](./backend/README.md) 与 [frontend/README.md](./frontend/README.md)。
+
+### 达梦 DM8 部署
+
+```bash
+cd backend
+copy .env.dm8.example .env    # 修改 DATABASE_URL
+# 在达梦管理工具执行 scripts/init_db.sql
+python -m scripts.seed_db
+uvicorn app.main:app --reload
+```
+
+完整步骤见 [docs/dm8-deployment.md](./docs/dm8-deployment.md)。
+
+### 测试与验收
+
+```bash
+# 后端单元测试
+cd backend && pytest
+
+# 前端构建
+cd frontend && npm run build
+
+# 端到端冒烟（需先启动后端）
+cd backend && python -m scripts.smoke_test
+```
+
+答辩演示顺序见 [docs/demo-script.md](./docs/demo-script.md)，截图清单见 [docs/screenshot-checklist.md](./docs/screenshot-checklist.md)，改造进度对照见 [docs/todo-checklist.md](./docs/todo-checklist.md)。
 
 ### 演示账号（密码均为 `123456`）
 

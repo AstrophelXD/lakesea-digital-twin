@@ -1,3 +1,11 @@
+export const ROLE_LABELS: Record<string, string> = {
+  ADMIN: '系统管理员',
+  DIRECTOR: '试验场主任',
+  TEACHER: '指导教师',
+  STUDENT: '学生/研究员',
+  MAINTAINER: '设备维护人员',
+}
+
 export const STATUS_LABELS: Record<string, string> = {
   DRAFT: '草稿',
   PENDING_TEACHER: '待教师审核',
@@ -24,6 +32,10 @@ export const STATUS_LABELS: Record<string, string> = {
 
 export function statusLabel(status: string) {
   return STATUS_LABELS[status] || status
+}
+
+export function roleLabel(role: string) {
+  return ROLE_LABELS[role] || role
 }
 
 export function statusTagType(status: string): '' | 'success' | 'warning' | 'danger' | 'info' {

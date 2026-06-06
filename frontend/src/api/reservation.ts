@@ -26,8 +26,20 @@ export interface Reservation {
   purpose?: string
   planSummary?: string
   rejectReason?: string
+  createTime?: string
+  submitTime?: string
   resources?: ReservationResource[]
   approvalLogs?: ApprovalLog[]
+  experimentTaskId?: number
+}
+
+export interface ConflictItem {
+  resourceId: number
+  resourceName?: string
+  conflictReservationNo: string
+  conflictExpName: string
+  startTime: string
+  endTime: string
 }
 
 export interface ApprovalLog {
@@ -60,6 +72,12 @@ export function createReservation(data: Record<string, unknown>) {
 
 export function updateReservation(id: number, data: Record<string, unknown>) {
   return request.put<ApiResponse<Reservation>>(`/api/reservations/${id}`, data)
+}
+
+export function checkConflicts(id: number) {
+  return request.post<ApiResponse<{ hasConflict: boolean; conflicts: ConflictItem[] }>>(
+    `/api/reservations/${id}/check-conflicts`,
+  )
 }
 
 export function submitReservation(id: number) {

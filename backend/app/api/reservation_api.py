@@ -62,6 +62,13 @@ def update_reservation(
     return success(result.model_dump(by_alias=True))
 
 
+@router.post("/{reservation_id}/check-conflicts")
+def check_conflicts(reservation_id: int, db: DbSession, current_user: CurrentUser):
+    roles = _roles(db, current_user)
+    result = ReservationService(db).check_conflicts(reservation_id, current_user, roles)
+    return success(result.model_dump(by_alias=True))
+
+
 @router.post("/{reservation_id}/submit")
 def submit_reservation(reservation_id: int, db: DbSession, current_user: CurrentUser):
     roles = _roles(db, current_user)

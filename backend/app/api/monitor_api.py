@@ -27,6 +27,17 @@ async def stop_monitor(experiment_id: int, db: DbSession, _: CurrentUser):
     return success(result.model_dump(by_alias=True))
 
 
+@router.post("/{experiment_id}/demo-alarm")
+async def trigger_demo_alarm(
+    experiment_id: int,
+    db: DbSession,
+    _: CurrentUser,
+    alarm_type: str = Query(..., alias="alarmType"),
+):
+    frame = await MonitorService(db).trigger_demo_alarm(experiment_id, alarm_type)
+    return success(frame)
+
+
 @router.get("/{experiment_id}/snapshot")
 def monitor_snapshot(
     experiment_id: int,

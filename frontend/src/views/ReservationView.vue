@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { listResources, type Resource } from '@/api/resource'
 import {
   cancelReservation,
+  checkConflicts,
   createReservation,
   directorApprove,
   getReservation,
@@ -18,6 +20,7 @@ import { listTeachers, type TeacherOption } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { statusLabel, statusTagType, toApiDateTime } from '@/utils/format'
 
+const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 const tableData = ref<Reservation[]>([])
@@ -184,7 +187,15 @@ async function saveDraft() {
 }
 
 async function onSubmit(row: Reservation) {
-  await ElMessageBox.confirm('确认提交预约？提交后将进入教师审核。', '提示')
+  const { data: conflictData } = await checkConflicts(row.id)
+  if (conflictData.data!.hasConflict) {
+    const list = conflictData.data!.conflicts
+      .map((c) => `「${c.resourceName}」与 ${c.conflictReservationNo}（${c.conflictExpName}）冲突`)
+      .join('\n')
+    await ElMessageBox.alert(`检测到资源冲突：\n${list}`, '冲突检测', { type: 'warning' })
+    return
+  }
+  await ElMessageBox.confirm('冲突检测通过。确认提交预约？提交后将进入教师审核。', '提示')
   await submitReservation(row.id)
   ElMessage.success('已提交')
   load()
@@ -234,6 +245,33 @@ const canSubmit = (row: Reservation) =>
 const canCancel = (row: Reservation) =>
   ['PENDING_TEACHER', 'PENDING_DIRECTOR'].includes(row.status) &&
   (row.applicantId === userStore.user?.id || userStore.hasRole('ADMIN'))
+
+const approvalSteps = computed(() => {
+  if (!currentDetail.value) return []
+  const d = currentDetail.value
+  const steps: { title: string; status: 'finish' | 'wait' | 'error'; time: string }[] = [
+    { title: '草稿', status: 'finish', time: d.createTime || '' },
+    { title: '已提交', status: d.submitTime ? 'finish' : 'wait', time: d.submitTime || '' },
+    { title: '教师审核', status: 'wait', time: '' },
+    { title: '主任审批', status: 'wait', time: '' },
+    { title: '生成任务', status: 'wait', time: '' },
+  ]
+  if (['PENDING_TEACHER', 'PENDING_DIRECTOR', 'APPROVED', 'COMPLETED', 'ARCHIVED'].includes(d.status)) {
+    steps[1].status = 'finish'
+  }
+  if (['PENDING_DIRECTOR', 'APPROVED', 'COMPLETED', 'ARCHIVED'].includes(d.status)) {
+    steps[2].status = 'finish'
+  }
+  if (['APPROVED', 'COMPLETED', 'ARCHIVED'].includes(d.status)) {
+    steps[3].status = 'finish'
+    steps[4].status = 'finish'
+  }
+  if (d.status === 'REJECTED') {
+    steps[2].status = d.approvalLogs?.some((l) => l.stepType === 'TEACHER_REVIEW') ? 'error' : 'wait'
+    steps[3].status = d.approvalLogs?.some((l) => l.stepType === 'DIRECTOR_APPROVAL') ? 'error' : 'wait'
+  }
+  return steps
+})
 
 onMounted(async () => {
   await loadOptions()
@@ -401,39 +439,74 @@ onMounted(async () => {
     </template>
   </el-dialog>
 
-  <!-- 详情 -->
-  <el-dialog v-model="detailVisible" title="预约详情" width="640px">
+  <!-- 详情：主表 + 从表 -->
+  <el-dialog v-model="detailVisible" title="预约详情（主从表）" width="780px">
     <template v-if="currentDetail">
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="单号">{{ currentDetail.reservationNo }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="statusTagType(currentDetail.status)">
-            {{ statusLabel(currentDetail.status) }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="试验名称" :span="2">{{ currentDetail.expName }}</el-descriptions-item>
-        <el-descriptions-item label="申请人">{{ currentDetail.applicantName }}</el-descriptions-item>
-        <el-descriptions-item label="教师">{{ currentDetail.teacherName }}</el-descriptions-item>
-        <el-descriptions-item v-if="currentDetail.rejectReason" label="驳回原因" :span="2">
-          {{ currentDetail.rejectReason }}
-        </el-descriptions-item>
-      </el-descriptions>
-      <h4>资源明细</h4>
-      <el-table :data="currentDetail.resources" size="small">
-        <el-table-column prop="resourceName" label="资源" />
-        <el-table-column prop="quantity" label="数量" width="70" />
-        <el-table-column prop="remark" label="备注" />
-      </el-table>
-      <h4 v-if="currentDetail.approvalLogs?.length">审批记录</h4>
+      <el-card shadow="never" class="master-card">
+        <template #header>主表 EXP_RESERVATION</template>
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="单号">{{ currentDetail.reservationNo }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="statusTagType(currentDetail.status)">
+              {{ statusLabel(currentDetail.status) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="试验名称" :span="2">{{ currentDetail.expName }}</el-descriptions-item>
+          <el-descriptions-item label="申请人">{{ currentDetail.applicantName }}</el-descriptions-item>
+          <el-descriptions-item label="教师">{{ currentDetail.teacherName }}</el-descriptions-item>
+          <el-descriptions-item label="计划时间" :span="2">
+            {{ currentDetail.startTime?.slice(0, 16) }} ~ {{ currentDetail.endTime?.slice(0, 16) }}
+          </el-descriptions-item>
+          <el-descriptions-item v-if="currentDetail.rejectReason" label="驳回原因" :span="2">
+            {{ currentDetail.rejectReason }}
+          </el-descriptions-item>
+        </el-descriptions>
+      </el-card>
+
+      <el-card shadow="never" class="detail-card">
+        <template #header>从表 EXP_RESERVATION_RESOURCE（{{ currentDetail.resources?.length || 0 }} 条明细）</template>
+        <el-table :data="currentDetail.resources" size="small" border>
+          <el-table-column prop="resourceName" label="资源" />
+          <el-table-column prop="resourceType" label="类型" width="90" />
+          <el-table-column prop="quantity" label="数量" width="70" />
+          <el-table-column label="占用时段" width="200">
+            <template #default="{ row }">
+              {{ row.startTime?.slice(0, 16) }} ~ {{ row.endTime?.slice(11, 16) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="remark" label="备注" />
+        </el-table>
+      </el-card>
+
+      <h4>审批流程</h4>
+      <el-steps :active="approvalSteps.filter((s) => s.status === 'finish').length" finish-status="success" align-center>
+        <el-step
+          v-for="step in approvalSteps"
+          :key="step.title"
+          :title="step.title"
+          :status="step.status"
+        />
+      </el-steps>
+
+      <h4 v-if="currentDetail.approvalLogs?.length">审批日志 EXP_APPROVAL_LOG</h4>
       <el-timeline v-if="currentDetail.approvalLogs?.length">
         <el-timeline-item
           v-for="log in currentDetail.approvalLogs"
           :key="log.id"
           :timestamp="log.actionTime"
+          :type="log.result === 'APPROVED' ? 'success' : 'danger'"
         >
-          {{ log.approverName }} — {{ log.result === 'APPROVED' ? '通过' : '驳回' }}：{{ log.comment }}
+          {{ log.approverName }} — {{ log.result === 'APPROVED' ? '通过' : '驳回' }}：{{ log.comment || '无' }}
         </el-timeline-item>
       </el-timeline>
+
+      <el-button
+        v-if="currentDetail.experimentTaskId"
+        type="primary"
+        @click="router.push({ name: 'experiments', query: { highlight: String(currentDetail.experimentTaskId) } })"
+      >
+        查看生成的试验任务 #{{ currentDetail.experimentTaskId }}
+      </el-button>
     </template>
   </el-dialog>
 
@@ -475,6 +548,10 @@ onMounted(async () => {
 .res-table {
   margin-top: 8px;
   width: 100%;
+}
+.master-card,
+.detail-card {
+  margin-bottom: 12px;
 }
 h4 {
   margin: 16px 0 8px;

@@ -10,7 +10,9 @@ router = APIRouter(prefix="/api/ai/reports", tags=["AI 分析"])
 
 @router.post("/generate")
 async def generate_report(payload: AiGenerateRequest, db: DbSession, current_user: CurrentUser):
-    result = await AiService(db).generate(payload.experiment_id, current_user.id)
+    result = await AiService(db).generate(
+        payload.experiment_id, current_user.id, payload.analysis_type
+    )
     return success(result.model_dump(by_alias=True))
 
 

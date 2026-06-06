@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
@@ -17,8 +17,19 @@ const experiments = ref<{ id: number; taskNo: string; expName: string; status: s
 const selectedId = ref<number | undefined>()
 const replay = ref<ReplayData | null>(null)
 const loading = ref(false)
+const replayIndex = ref(0)
 const chartRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
+
+const replayTracks = computed(() => {
+  if (!replay.value?.tracks.length) return []
+  return replay.value.tracks.slice(0, replayIndex.value + 1)
+})
+
+const currentSensor = computed(() => {
+  const series = replay.value?.sensorSeries || []
+  return series[replayIndex.value] || null
+})
 
 async function loadExperiments() {
   const [c, a] = await Promise.all([
@@ -39,6 +50,7 @@ async function loadReplay() {
   try {
     const { data } = await getExperimentReplay(selectedId.value)
     replay.value = data.data!
+    replayIndex.value = 0
     renderChart()
   } finally {
     loading.value = false
@@ -63,7 +75,15 @@ function renderChart() {
       { name: '阻力', type: 'line', data: s.map((p) => p.resistance), smooth: true },
     ],
   })
+  highlightChartIndex(replayIndex.value)
 }
+
+function highlightChartIndex(idx: number) {
+  if (!chart || !replay.value?.sensorSeries.length) return
+  chart.dispatchAction({ type: 'showTip', seriesIndex: 0, dataIndex: idx })
+}
+
+watch(replayIndex, (idx) => highlightChartIndex(idx))
 
 async function onUpload(file: File) {
   if (!selectedId.value) return
@@ -136,13 +156,29 @@ onMounted(async () => {
         <el-col :span="18">
           <el-card shadow="never">
             <template #header>轨迹回放</template>
-            <TrackReplay :tracks="replay.tracks" />
+            <TrackReplay :tracks="replayTracks" />
+            <div class="replay-controls">
+              <span class="replay-time">
+                {{ currentSensor?.timestamp?.slice(11, 19) || '—' }}
+              </span>
+              <el-slider
+                v-model="replayIndex"
+                :min="0"
+                :max="Math.max((replay?.sensorSeries?.length || 1) - 1, 0)"
+                :format-tooltip="(v: number) => replay?.sensorSeries?.[v]?.timestamp?.slice(11, 19) || ''"
+              />
+            </div>
+            <el-descriptions v-if="currentSensor" :column="3" border size="small" class="sensor-now">
+              <el-descriptions-item label="速度">{{ currentSensor.speed }} m/s</el-descriptions-item>
+              <el-descriptions-item label="电量">{{ currentSensor.battery }}%</el-descriptions-item>
+              <el-descriptions-item label="阻力">{{ currentSensor.resistance }} N</el-descriptions-item>
+            </el-descriptions>
           </el-card>
         </el-col>
       </el-row>
 
       <el-card shadow="never" class="section">
-        <template #header>历史曲线</template>
+        <template #header>历史曲线（随时间轴同步定位）</template>
         <div ref="chartRef" class="history-chart" />
       </el-card>
 
@@ -193,5 +229,15 @@ onMounted(async () => {
 }
 .history-chart {
   height: 300px;
+}
+.replay-controls {
+  margin-top: 12px;
+}
+.replay-time {
+  font-size: 13px;
+  color: #374151;
+}
+.sensor-now {
+  margin-top: 10px;
 }
 </style>

@@ -26,14 +26,16 @@ from app.repositories.resource_repository import ResourceRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.common import PageResult
 from app.schemas.reservation_schema import (
+    ApprovalLogOut,
     ApprovalRequest,
+    ConflictCheckResult,
+    ConflictItem,
     ReservationCreate,
     ReservationDetailOut,
     ReservationOut,
     ReservationResourceItem,
     ReservationResourceOut,
     ReservationUpdate,
-    ApprovalLogOut,
 )
 from app.services.resource_service import ResourceService
 
@@ -104,24 +106,72 @@ class ReservationService:
             )
         return rows
 
-    def _check_conflicts(
+    def _collect_conflicts(
         self,
         items: List[ReservationResourceItem],
         exclude_reservation_id: Optional[int] = None,
-    ) -> None:
+    ) -> List[ConflictItem]:
+        result: List[ConflictItem] = []
         for item in items:
             start = item.start_time
             end = item.end_time
             conflicts = self.repo.find_conflicts(
                 item.resource_id, start, end, exclude_reservation_id
             )
-            if conflicts:
-                resource = self.resource_repo.get_by_id(item.resource_id)
-                name = resource.resource_name if resource else str(item.resource_id)
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"资源「{name}」在 {start} ~ {end} 时段已被其他预约占用",
+            resource = self.resource_repo.get_by_id(item.resource_id)
+            name = resource.resource_name if resource else str(item.resource_id)
+            for c in conflicts:
+                result.append(
+                    ConflictItem(
+                        resource_id=item.resource_id,
+                        resource_name=name,
+                        conflict_reservation_no=c.reservation_no,
+                        conflict_exp_name=c.exp_name,
+                        start_time=start,
+                        end_time=end,
+                    )
                 )
+        return result
+
+    def _check_conflicts(
+        self,
+        items: List[ReservationResourceItem],
+        exclude_reservation_id: Optional[int] = None,
+    ) -> None:
+        conflicts = self._collect_conflicts(items, exclude_reservation_id)
+        if conflicts:
+            first = conflicts[0]
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"资源「{first.resource_name}」在 {first.start_time} ~ {first.end_time} "
+                    f"时段已被预约 {first.conflict_reservation_no} 占用"
+                ),
+            )
+
+    def check_conflicts(
+        self,
+        reservation_id: int,
+        current_user: SysUser,
+        roles: List[str],
+    ) -> ConflictCheckResult:
+        reservation = self.repo.get_detail(reservation_id)
+        if not reservation:
+            raise HTTPException(status_code=404, detail="预约不存在")
+        self._ensure_can_view(reservation, current_user, roles)
+        items = [
+            ReservationResourceItem(
+                resource_id=rr.resource_id,
+                resource_type=rr.resource_type,
+                quantity=rr.quantity,
+                start_time=rr.start_time,
+                end_time=rr.end_time,
+                remark=rr.remark,
+            )
+            for rr in reservation.resources
+        ]
+        conflicts = self._collect_conflicts(items, reservation_id)
+        return ConflictCheckResult(has_conflict=len(conflicts) > 0, conflicts=conflicts)
 
     def list_reservations(
         self,
@@ -182,10 +232,12 @@ class ReservationService:
             )
             for log in sorted(reservation.approval_logs, key=lambda x: x.action_time)
         ]
+        task = self.experiment_repo.get_by_reservation_id(reservation_id)
         return ReservationDetailOut(
             **base.model_dump(),
             resources=resources_out,
             approval_logs=logs_out,
+            experiment_task_id=task.id if task else None,
         )
 
     def _ensure_can_view(self, r: ExpReservation, user: SysUser, roles: List[str]) -> None:

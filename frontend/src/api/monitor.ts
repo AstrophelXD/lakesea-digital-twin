@@ -44,6 +44,12 @@ export function getMonitorSnapshot(experimentId: number) {
   )
 }
 
+export function triggerDemoAlarm(experimentId: number, alarmType: string) {
+  return request.post<ApiResponse<MonitorFrame>>(`/api/monitor/${experimentId}/demo-alarm`, null, {
+    params: { alarmType },
+  })
+}
+
 export function buildMonitorWsUrl(experimentId: number, token: string) {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   const host = window.location.host

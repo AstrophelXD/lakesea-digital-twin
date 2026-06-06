@@ -9,6 +9,7 @@ const props = defineProps<{
   position: { x: number; y: number }
   heading: number
   tracks: { x: number; y: number }[]
+  highlight?: boolean
 }>()
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -16,6 +17,7 @@ let renderer: THREE.WebGLRenderer | null = null
 let scene: THREE.Scene | null = null
 let camera: THREE.OrthographicCamera | null = null
 let shipMesh: THREE.Mesh | null = null
+let shipMat: THREE.MeshBasicMaterial | null = null
 let trailLine: THREE.Line | null = null
 let animId = 0
 
@@ -60,7 +62,7 @@ function init() {
   scene.add(border)
 
   const shipGeo = new THREE.ConeGeometry(0.8, 2, 3)
-  const shipMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 })
+  shipMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 })
   shipMesh = new THREE.Mesh(shipGeo, shipMat)
   scene.add(shipMesh)
 
@@ -106,6 +108,13 @@ function onResize() {
 }
 
 watch(() => [props.position, props.heading, props.tracks], updateShip, { deep: true })
+
+watch(
+  () => props.highlight,
+  (on) => {
+    if (shipMat) shipMat.color.setHex(on ? 0xef4444 : 0xfbbf24)
+  },
+)
 
 onMounted(() => {
   init()

@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.ai_api import router as ai_router
+from app.api.dashboard_api import router as dashboard_router
+from app.api.health_api import router as health_router
 from app.api.alarm_api import router as alarm_router
 from app.api.file_api import router as file_router
 from app.api.auth_api import router as auth_router
@@ -42,6 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(health_router)
+app.include_router(dashboard_router)
 app.include_router(auth_router)
 app.include_router(resource_router)
 app.include_router(reservation_router)

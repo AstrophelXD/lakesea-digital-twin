@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.core.config import get_settings
+from app.core.db_info import is_dm8
 
 settings = get_settings()
 
@@ -43,7 +44,9 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
-    """根据 ORM 模型创建表（本地 SQLite 开发用；生产达梦请执行 scripts/init_db.sql）。"""
+    """SQLite 开发环境由 ORM 自动建表；达梦 DM8 请执行 scripts/init_db.sql。"""
+    if is_dm8(settings.database_url):
+        return
     # 延迟导入，避免循环依赖
     from app.models import (  # noqa: F401
         archive,

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
 declare module 'vue-router' {
@@ -32,7 +33,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'users',
         name: 'users',
-        component: () => import('@/views/PlaceholderView.vue'),
+        component: () => import('@/views/UserManageView.vue'),
         meta: { title: '用户管理', menu: 'users', roles: ['ADMIN'] },
       },
       {
@@ -123,6 +124,7 @@ router.beforeEach(async (to, _from, next) => {
 
   const roles = to.meta.roles as string[] | undefined
   if (roles && !roles.some((r) => userStore.hasRole(r))) {
+    ElMessage.warning('无权限访问该页面')
     next({ name: 'dashboard' })
     return
   }

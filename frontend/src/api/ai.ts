@@ -9,11 +9,14 @@ export interface AiReport {
   modelName?: string
   generatedTime: string
   mock?: boolean
+  analysisType?: string
+  analysisMode?: string
 }
 
-export function generateAiReport(experimentId: number) {
+export function generateAiReport(experimentId: number, analysisType = 'OVERVIEW') {
   return request.post<ApiResponse<AiReport>>('/api/ai/reports/generate', {
     experimentId,
+    analysisType,
   })
 }
 
