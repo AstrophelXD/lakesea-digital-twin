@@ -112,6 +112,11 @@ test-results/
 .docker/
 docker-data/
 
+# Local-only docs (do not commit)
+docs/local/
+*.local.md
+DM8操作手册*.md
+
 # Keep repository examples and docs
 !docs/
 !backend/scripts/*.sql
