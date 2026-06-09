@@ -128,3 +128,50 @@ python -m scripts.mock_mqtt_publisher --experiment-id 3
 
 - **默认演示**：无需 Broker，`ENABLE_MQTT=false`，一键「模拟试验开始」即可。
 - **加分演示**：说明系统支持「真实物联网接入扩展」—— 配置 `ENABLE_MQTT=true`，用 `mock_mqtt_publisher` 模拟传感器网关向 MQTT 上报，后端统一入库并经 WebSocket 推送到数字孪生大屏。
+
+---
+
+## 设备控制 MQTT（智能中控台）
+
+与传感器数据通道独立，用于**控制指令下发与设备回执**。
+
+### 主题
+
+| 方向 | 主题 | 说明 |
+|------|------|------|
+| 中心 → 设备 | `lakesea/device/{deviceId}/command` | 后端下发指令 |
+| 设备 → 中心 | `lakesea/device/{deviceId}/status` | 设备执行回执 |
+
+### 指令载荷示例
+
+```json
+{
+  "commandType": "WAVE_MAKER_START",
+  "payload": {},
+  "issuedAt": "2026-06-09T10:00:00"
+}
+```
+
+### 回执载荷示例
+
+```json
+{
+  "deviceId": "DEV-WAVE-001",
+  "commandType": "WAVE_MAKER_START",
+  "status": "EXECUTED",
+  "executedAt": "2026-06-09T10:00:01"
+}
+```
+
+后端订阅 `lakesea/device/+/status`，收到后更新设备缓存并经 WebSocket 广播 `type: device_status`，前端 `ControlPanel` 实时显示回执。
+
+### 模拟设备端
+
+```bash
+cd backend
+python -m scripts.mock_device_agent --device-id DEV-WAVE-001
+```
+
+在监控页左侧控制面板选择对应设备，点击「造波机启动」等按钮即可看到 MQTT 回执刷新。
+
+详见 [docs/smart-console.md](./smart-console.md)。

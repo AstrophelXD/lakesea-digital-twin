@@ -1,7 +1,7 @@
 # 顶尖优秀版改造对照清单
 
 > 用于答辩前逐项核对。状态：`[x]` 已完成 · `[ ]` 待完成 · `[~]` 部分完成  
-> 最后更新：2026-06-06
+> 最后更新：2026-06-09
 
 ---
 
@@ -95,18 +95,31 @@ P3  代码质量与报告支撑
 
 ---
 
-### 5. 数字孪生监控页
+### 5. 数字孪生监控页 · 智能中控台
 
 | 任务 | 状态 | 说明 / 文件 |
 |------|------|-------------|
-| 四区布局（任务列表 / 场景 / 数据面板 / 底部曲线） | [x] | `MonitorView.vue` |
+| 三栏布局（设备控制 / 视频+孪生 / 数据告警） | [x] | `MonitorView.vue` 升级 |
+| 顶栏系统状态（WS/MQTT/视频/边缘端/延迟） | [x] | `SystemStatusBar.vue` |
+| 视频监控面板（Canvas / MJPEG / MP4） | [x] | `VideoPanel.vue` + `video_api.py` |
+| `VIDEO_RECORD` 表与录制 API | [x] | `init_db.sql` + `video_service.py` |
+| OpenCV / 模拟模型船识别 + 孪生联动 | [x] | `cv_tracking_service.py` + CV 开关 |
+| 设备控制指令链路 + `DEVICE_COMMAND_LOG` | [x] | `device_api.py` + `ControlPanel.vue` |
+| MQTT 设备状态回执 → 前端控制面板 | [x] | `mqtt_service` 订阅 `device/+/status` |
+| `mock_device_agent` 模拟设备端 | [x] | `scripts/mock_device_agent.py` |
+| Edge Agent 架构骨架 | [x] | `edge-agent/` |
+| `GET /api/health/system` 运行状态 | [x] | `system_health_service.py` |
+| 演示视频生成脚本 | [x] | `scripts/generate_demo_video.py` |
+| 智能中控台文档 | [x] | `docs/smart-console.md` |
 | 模型船实时移动 + 轨迹线 | [x] | `TwinScene.vue` + WebSocket |
 | 告警时模型船高亮 | [x] | `highlight` 属性 |
-| 告警弹窗 + 写入 `ALARM_RECORD` | [x] | |
-| WebSocket 状态（已连接/重连中/已断开） | [x] | |
-| 模拟试验开始 / 暂停 / 结束 | [x] | |
-| 演示告警按钮（低电量/越界/数据突变） | [x] | `POST /api/monitor/{id}/demo-alarm` |
-| 刷新稳定 ≥1 秒一次 | [x] | `_tick_interval = 1.0` |
+| WebSocket 断线重连 | [x] | |
+| 演示告警按钮 | [x] | `POST /api/monitor/{id}/demo-alarm` |
+
+**答辩话术：**
+
+- [ ] 能讲清「视频感知 + 数字孪生态势 + 时间戳关联」
+- [ ] 能演示设备指令下发与 MQTT 回执（可选）
 
 ---
 
@@ -158,6 +171,7 @@ P3  代码质量与报告支撑
 | `python -m scripts.mock_mqtt_publisher` | [x] | `backend/scripts/mock_mqtt_publisher.py` |
 | `GET /api/monitor/mqtt/info` | [x] | Broker 状态与主题 |
 | 监控页数据源标识 | [x] | `MonitorView.vue` MQTT/WebSocket 标签 |
+| 设备指令 MQTT 主题与状态回执 | [x] | `lakesea/device/{id}/command|status` |
 | 文档说明 WebSocket 默认、MQTT 可选 | [x] | `docs/mqtt-integration.md` |
 
 ---
@@ -220,6 +234,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | 本对照清单 | [x] | `docs/todo-checklist.md` |
 | AI 分析报告说明 | [x] | `docs/ai-report.md` |
 | MQTT 模拟接入说明 | [x] | `docs/mqtt-integration.md` |
+| 智能中控台说明 | [x] | `docs/smart-console.md` |
 | 操作审计日志说明 | [x] | `docs/audit-log.md` |
 | 演示数据与一键重置说明 | [x] | `docs/demo-data.md` |
 
@@ -239,13 +254,14 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 [ ] 7.  主任审批
 [ ] 8.  系统生成试验任务
 [ ] 9.  试验任务：准备 → 启动
-[ ] 10. 进入数字孪生监控页
-[ ] 11. 启动模拟数据（模型船运动 + 曲线）
-[ ] 12. 触发演示告警
-[ ] 13. 完成试验并归档
-[ ] 14. 归档页时间轴回放
-[ ] 15. 生成 AI 分析报告（含数据摘要、调用日志）
-[ ] 16. 达梦库中查看主从表、任务、告警、AI_REPORT、AI_CALL_LOG、SYS_OPERATION_LOG 数据
+[ ] 10. 进入数字孪生智能中控台
+[ ] 11. 启动中控台（视频 + CV 识别 + 孪生联动 + 曲线）
+[ ] 12. 设备控制指令下发（可选 MQTT 回执演示）
+[ ] 13. 触发演示告警
+[ ] 14. 完成试验并归档
+[ ] 15. 归档页时间轴回放
+[ ] 16. 生成 AI 分析报告（含数据摘要、调用日志）
+[ ] 17. 达梦库中查看主从表、VIDEO_RECORD、DEVICE_COMMAND_LOG、告警、AI 报告等
 ```
 
 ---
@@ -265,8 +281,8 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | 级别 | 已完成 | 部分完成 | 待完成 |
 |------|--------|----------|--------|
 | P0 | 17 | 0 | 1（实机验收） |
-| P1 | 38 | 0 | 0 |
-| P2 | 17 | 0 | 0 |
+| P1 | 50 | 0 | 0 |
+| P2 | 18 | 0 | 0 |
 | P3 | 6 | 0 | 0 |
 
 > 勾选方式：直接在本文档把 `[ ]` 改成 `[x]`，或用 IDE 任务插件跟踪。

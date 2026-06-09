@@ -28,6 +28,8 @@ class MqttIngestService:
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._connected = False
         self._topic_re = re.compile(r"/(\d+)/sensor$")
+        self._device_status_re = re.compile(r"/device/([^/]+)/status$")
+        self._device_status: dict[str, dict[str, Any]] = {}
 
     def start(self, loop: asyncio.AbstractEventLoop) -> None:
         settings = get_settings()
@@ -95,6 +97,12 @@ class MqttIngestService:
             data_source="mqtt" if settings.enable_mqtt else "websocket_sim",
         )
 
+    def get_device_status(self, device_id: str) -> Optional[dict[str, Any]]:
+        return self._device_status.get(device_id)
+
+    def get_all_device_statuses(self) -> dict[str, dict[str, Any]]:
+        return dict(self._device_status)
+
     def _on_connect(self, _client: Any, _userdata: Any, _flags: Any, rc: int) -> None:
         settings = get_settings()
         if rc != 0:
@@ -102,9 +110,12 @@ class MqttIngestService:
             self._connected = False
             return
         self._connected = True
-        topic = f"{settings.mqtt_topic_prefix.rstrip('/')}/+/sensor"
-        _client.subscribe(topic, qos=0)
-        logger.info("MQTT 已订阅 %s", topic)
+        prefix = settings.mqtt_topic_prefix.rstrip("/")
+        sensor_topic = f"{prefix}/+/sensor"
+        status_topic = "lakesea/device/+/status"
+        _client.subscribe(sensor_topic, qos=0)
+        _client.subscribe(status_topic, qos=0)
+        logger.info("MQTT 已订阅 %s , %s", sensor_topic, status_topic)
 
     def _on_disconnect(self, _client: Any, _userdata: Any, rc: int) -> None:
         self._connected = False
@@ -120,6 +131,10 @@ class MqttIngestService:
         raise ValueError(f"无法从主题解析试验 ID: {topic}")
 
     def _on_message(self, _client: Any, _userdata: Any, msg: Any) -> None:
+        if self._device_status_re.search(msg.topic):
+            self._handle_device_status(msg.topic, msg.payload)
+            return
+
         try:
             raw = json.loads(msg.payload.decode("utf-8"))
             payload = MqttSensorPayload.model_validate(raw)
@@ -143,6 +158,31 @@ class MqttIngestService:
         if self._loop is not None:
             asyncio.run_coroutine_threadsafe(
                 ws_manager.broadcast(experiment_id, frame),
+                self._loop,
+            )
+
+    def _handle_device_status(self, topic: str, payload: bytes) -> None:
+        match = self._device_status_re.search(topic)
+        if not match:
+            return
+        device_id = match.group(1)
+        try:
+            raw = json.loads(payload.decode("utf-8"))
+        except json.JSONDecodeError as exc:
+            logger.warning("忽略无效设备状态: %s", exc)
+            return
+
+        status = {
+            "deviceId": device_id,
+            "status": raw.get("status", "UNKNOWN"),
+            "commandType": raw.get("commandType"),
+            "executedAt": raw.get("executedAt"),
+            "receivedAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        self._device_status[device_id] = status
+        if self._loop is not None:
+            asyncio.run_coroutine_threadsafe(
+                ws_manager.broadcast_all({"type": "device_status", **status}),
                 self._loop,
             )
 

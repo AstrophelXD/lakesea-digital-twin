@@ -225,7 +225,7 @@ lakesea-digital-twin/
 - [x] 达梦 DM8 部署文档与外键约束（见 [docs/dm8-deployment.md](./docs/dm8-deployment.md)）
 - [x] 数据库健康检查 `GET /api/health/db`
 - [x] 预约冲突检测、审批流程展示、任务跳转
-- [x] 数字孪生监控四区布局 + 演示告警按钮
+- [x] 数字孪生智能中控台（视频感知 + CV 识别 + 设备控制）见 [docs/smart-console.md](./docs/smart-console.md)
 - [x] 试验归档回放（时间轴/告警标记/导出/文件上传）见 [docs/archive-replay.md](./docs/archive-replay.md)
 - [x] AI 分析报告工作流（摘要预览/调用日志/五段展示）见 [docs/ai-report.md](./docs/ai-report.md)
 - [x] MQTT 模拟接入（WebSocket 默认 / MQTT 可选）见 [docs/mqtt-integration.md](./docs/mqtt-integration.md)
@@ -236,8 +236,9 @@ lakesea-digital-twin/
 ### 可选增强
 
 - [x] MQTT 模拟数据接入（可选，`docs/mqtt-integration.md`）
+- [x] 设备控制 MQTT 回执与智能中控台（`docs/smart-console.md`）
 - [x] 操作审计日志（`SYS_OPERATION_LOG`，见 [docs/audit-log.md](./docs/audit-log.md)）
-- [ ] 一键演示数据重置脚本
+- [x] 一键演示数据重置脚本
 
 ---
 

@@ -12,6 +12,9 @@ class DeviceInfoOut(BaseModel):
     device_type: str = Field(serialization_alias="deviceType")
     status: str
     online: bool
+    last_command_type: Optional[str] = Field(None, serialization_alias="lastCommandType")
+    last_ack_at: Optional[str] = Field(None, serialization_alias="lastAckAt")
+    ack_status: Optional[str] = Field(None, serialization_alias="ackStatus")
 
     model_config = {"populate_by_name": True}
 

@@ -28,9 +28,14 @@ class VideoService:
 
     def _demo_file_path(self) -> Path:
         settings = get_settings()
-        base = Path(settings.upload_dir) / "videos"
-        base.mkdir(parents=True, exist_ok=True)
-        return base / "demo_pool.mp4"
+        upload_path = Path(settings.upload_dir) / "videos" / "demo_pool.mp4"
+        if upload_path.exists():
+            return upload_path
+        assets_path = Path(__file__).resolve().parents[2] / "assets" / "videos" / "demo_pool.mp4"
+        if assets_path.exists():
+            return assets_path
+        upload_path.parent.mkdir(parents=True, exist_ok=True)
+        return upload_path
 
     def get_stream_config(self, experiment_id: int) -> VideoStreamConfigOut:
         self._ensure_experiment(experiment_id)

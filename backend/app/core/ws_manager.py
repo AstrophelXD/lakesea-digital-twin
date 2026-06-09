@@ -31,6 +31,20 @@ class MonitorConnectionManager:
     async def broadcast(self, experiment_id: int, message: dict[str, Any]) -> None:
         async with self._lock:
             conns = list(self._connections.get(experiment_id, set()))
+        await self._send_to_connections(experiment_id, conns, message)
+
+    async def broadcast_all(self, message: dict[str, Any]) -> None:
+        async with self._lock:
+            pairs = [(eid, list(conns)) for eid, conns in self._connections.items()]
+        for experiment_id, conns in pairs:
+            await self._send_to_connections(experiment_id, conns, message)
+
+    async def _send_to_connections(
+        self,
+        experiment_id: int,
+        conns: list[WebSocket],
+        message: dict[str, Any],
+    ) -> None:
         if not conns:
             return
         text = json.dumps(message, ensure_ascii=False)

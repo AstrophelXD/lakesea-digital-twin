@@ -35,12 +35,25 @@ class DeviceCommandService:
     def list_devices(self, experiment_id: Optional[int] = None) -> List[DeviceInfoOut]:
         if experiment_id is not None and not self.experiment_repo.get_by_id(experiment_id):
             raise HTTPException(status_code=404, detail="试验任务不存在")
-        online_count = 5 if get_settings().edge_agent_online else 4
+        settings = get_settings()
+        mqtt_statuses: dict[str, dict] = {}
+        if settings.enable_mqtt:
+            from app.services.mqtt_service import mqtt_service
+
+            mqtt_statuses = mqtt_service.get_all_device_statuses()
+
+        online_count = 5 if settings.edge_agent_online else 4
         devices: List[DeviceInfoOut] = []
         for idx, (did, name, dtype) in enumerate(MOCK_DEVICES):
+            ack = mqtt_statuses.get(did)
             online = idx < online_count
             status = "ONLINE" if online else "OFFLINE"
-            if dtype == "WAVE_MAKER" and not online:
+            if ack and ack.get("status") == "EXECUTED":
+                status = "EXECUTED"
+                online = True
+            elif ack and ack.get("status"):
+                status = str(ack["status"])
+            if dtype == "WAVE_MAKER" and not online and not ack:
                 status = "STANDBY"
             devices.append(
                 DeviceInfoOut(
@@ -49,6 +62,9 @@ class DeviceCommandService:
                     device_type=dtype,
                     status=status,
                     online=online,
+                    last_command_type=ack.get("commandType") if ack else None,
+                    last_ack_at=ack.get("executedAt") or ack.get("receivedAt") if ack else None,
+                    ack_status=ack.get("status") if ack else None,
                 )
             )
         return devices

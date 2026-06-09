@@ -22,6 +22,7 @@ import SensorChart from '@/components/SensorChart.vue'
 import AlarmList from '@/components/AlarmList.vue'
 import VideoPanel from '@/components/VideoPanel.vue'
 import ControlPanel from '@/components/ControlPanel.vue'
+import type { DeviceStatusEvent } from '@/api/device'
 import SystemStatusBar from '@/components/SystemStatusBar.vue'
 
 const route = useRoute()
@@ -40,6 +41,7 @@ const cvTrack = ref<CvTrackResult | null>(null)
 const cvEnabled = ref(false)
 const wsLatencyMs = ref<number | null>(null)
 const useCvPosition = ref(true)
+const controlPanelRef = ref<InstanceType<typeof ControlPanel> | null>(null)
 
 const isMqttMode = computed(() => mqttInfo.value?.enabled === true)
 const dataSourceLabel = computed(() =>
@@ -141,6 +143,10 @@ function connectWs() {
       if (useCvPosition.value) {
         tracks.value = [...tracks.value, { x: payload.poolX, y: payload.poolY }].slice(-200)
       }
+      return
+    }
+    if (payload.type === 'device_status') {
+      controlPanelRef.value?.applyDeviceStatus(payload as DeviceStatusEvent)
       return
     }
     const frame = payload as MonitorFrame
@@ -293,8 +299,10 @@ onUnmounted(() => {
             class="side-tip"
           />
           <ControlPanel
+            ref="controlPanelRef"
             :experiment-id="selectedId"
             :monitor-running="monitorRunning"
+            :mqtt-enabled="isMqttMode"
             @command-issued="loadSystemHealth"
           />
         </el-card>

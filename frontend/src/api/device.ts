@@ -1,11 +1,22 @@
 import request, { type ApiResponse } from './request'
 
+export interface DeviceStatusEvent {
+  deviceId: string
+  status: string
+  commandType?: string
+  executedAt?: string
+  receivedAt?: string
+}
+
 export interface DeviceInfo {
   deviceId: string
   deviceName: string
   deviceType: string
   status: string
   online: boolean
+  lastCommandType?: string | null
+  lastAckAt?: string | null
+  ackStatus?: string | null
 }
 
 export interface DeviceCommand {
