@@ -193,6 +193,7 @@ class MonitorService:
             experiment_id=experiment_id,
             ship_code="M-001",
             timestamp=now.strftime("%Y-%m-%d %H:%M:%S"),
+            server_time=now.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
             position={"x": round(state.x, 2), "y": round(state.y, 2)},
             speed=round(state.speed, 2),
             heading=round(state.heading, 2),

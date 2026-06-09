@@ -4,6 +4,7 @@ export interface MonitorFrame {
   experimentId: number
   shipCode: string
   timestamp: string
+  serverTime?: string
   position: { x: number; y: number }
   speed: number
   heading: number
@@ -17,6 +18,7 @@ export interface MonitorFrame {
     level: string
     message: string
   } | null
+  cvTrack?: Record<string, unknown> | null
 }
 
 export interface MonitorStatus {

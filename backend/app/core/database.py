@@ -51,11 +51,13 @@ def init_db() -> None:
     from app.models import (  # noqa: F401
         archive,
         audit,
+        device_command,
         experiment,
         monitor,
         reservation,
         resource,
         user,
+        video_record,
     )
 
     Base.metadata.create_all(bind=engine)

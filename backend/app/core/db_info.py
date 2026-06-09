@@ -25,6 +25,8 @@ CORE_TABLES = [
     "AI_REPORT",
     "AI_CALL_LOG",
     "SYS_OPERATION_LOG",
+    "VIDEO_RECORD",
+    "DEVICE_COMMAND_LOG",
 ]
 
 

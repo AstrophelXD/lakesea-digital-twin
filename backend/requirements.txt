@@ -8,4 +8,7 @@ bcrypt>=4.0.0
 httpx>=0.27.0
 python-multipart>=0.0.6
 paho-mqtt>=2.0.0
+# OpenCV 可选：pip install opencv-python-headless（未安装时 CV 识别自动降级为模拟）
+# opencv-python-headless>=4.8.0
+# Pillow 可选：MJPEG 服务端渲染备选 pip install Pillow
 # 达梦实机联调时手动安装：pip install dmPython sqlalchemy-dm --proxy http://127.0.0.1:7897

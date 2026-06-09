@@ -8,13 +8,16 @@ from fastapi.responses import JSONResponse
 from app.api.ai_api import reports_router as ai_reports_router
 from app.api.ai_api import router as ai_router
 from app.api.audit_api import router as audit_router
+from app.api.cv_api import router as cv_router
 from app.api.dashboard_api import router as dashboard_router
+from app.api.device_api import router as device_router
 from app.api.health_api import router as health_router
 from app.api.alarm_api import router as alarm_router
 from app.api.file_api import router as file_router
 from app.api.auth_api import router as auth_router
 from app.api.experiment_api import router as experiment_router
 from app.api.monitor_api import router as monitor_router
+from app.api.video_api import router as video_router
 from app.api.reservation_api import router as reservation_router
 from app.api.resource_api import router as resource_router
 from app.api.user_api import router as user_router
@@ -61,6 +64,9 @@ app.include_router(reservation_router)
 app.include_router(experiment_router)
 app.include_router(user_router)
 app.include_router(monitor_router)
+app.include_router(video_router)
+app.include_router(cv_router)
+app.include_router(device_router)
 app.include_router(alarm_router)
 app.include_router(ws_router)
 app.include_router(file_router)

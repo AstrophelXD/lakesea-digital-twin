@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     mqtt_username: str = ""
     mqtt_password: str = ""
 
+    # 视频监控（课程演示：本地文件 / MJPEG / RTSP 占位）
+    video_mode: str = "file"
+    video_camera_id: str = "CAM-001"
+    video_rtsp_url: str = ""
+
+    # 边缘端模拟在线状态
+    edge_agent_online: bool = True
+
     @property
     def cors_origin_list(self) -> List[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

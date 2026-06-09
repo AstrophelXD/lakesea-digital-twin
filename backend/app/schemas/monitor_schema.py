@@ -8,6 +8,7 @@ class MonitorFrame(BaseModel):
     experiment_id: int = Field(serialization_alias="experimentId")
     ship_code: str = Field(default="M-001", serialization_alias="shipCode")
     timestamp: str
+    server_time: Optional[str] = Field(None, serialization_alias="serverTime")
     position: dict[str, float]
     speed: float
     heading: float
@@ -16,6 +17,7 @@ class MonitorFrame(BaseModel):
     battery: float
     resistance: float
     alarm: Optional[dict[str, Any]] = None
+    cv_track: Optional[dict[str, Any]] = Field(None, serialization_alias="cvTrack")
 
     model_config = {"populate_by_name": True}
 
