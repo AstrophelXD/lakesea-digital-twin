@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -26,7 +27,12 @@ from app.core.response import error
 async def lifespan(app: FastAPI):
     # 本地 SQLite：ORM 自动建表；达梦生产请执行 scripts/init_db.sql
     init_db()
+    from app.services.mqtt_service import mqtt_service
+
+    loop = asyncio.get_running_loop()
+    mqtt_service.start(loop)
     yield
+    mqtt_service.stop()
 
 
 settings = get_settings()

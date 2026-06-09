@@ -24,6 +24,22 @@ export interface MonitorStatus {
   running: boolean
   connectedClients: number
   frameCount: number
+  dataSource?: 'websocket_sim' | 'mqtt'
+  mqttConnected?: boolean | null
+}
+
+export interface MqttInfo {
+  enabled: boolean
+  connected: boolean
+  brokerHost: string
+  brokerPort: number
+  topicPrefix: string
+  subscribedTopic: string
+  dataSource: 'websocket_sim' | 'mqtt'
+}
+
+export function getMqttInfo() {
+  return request.get<ApiResponse<MqttInfo>>('/api/monitor/mqtt/info')
 }
 
 export function getMonitorStatus(experimentId: number) {

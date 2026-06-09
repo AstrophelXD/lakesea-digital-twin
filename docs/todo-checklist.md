@@ -150,13 +150,15 @@ P3  代码质量与报告支撑
 
 ### 8. MQTT 模拟接入
 
-| 任务 | 状态 |
-|------|------|
-| `backend/app/services/mqtt_service.py` | [ ] |
-| `ENABLE_MQTT` 等配置开关 | [ ] |
-| MQTT 消息写入 `SENSOR_DATA` | [ ] |
-| `python -m scripts.mock_mqtt_publisher` | [ ] |
-| 文档说明 WebSocket 默认、MQTT 可选 | [ ] |
+| 任务 | 状态 | 说明 / 文件 |
+|------|------|-------------|
+| `backend/app/services/mqtt_service.py` | [x] | 订阅、解析、入库、WebSocket 广播 |
+| `ENABLE_MQTT` 等配置开关 | [x] | `backend/.env.example`、`config.py` |
+| MQTT 消息写入 `SENSOR_DATA` | [x] | `MonitorService.persist_frame` 复用 |
+| `python -m scripts.mock_mqtt_publisher` | [x] | `backend/scripts/mock_mqtt_publisher.py` |
+| `GET /api/monitor/mqtt/info` | [x] | Broker 状态与主题 |
+| 监控页数据源标识 | [x] | `MonitorView.vue` MQTT/WebSocket 标签 |
+| 文档说明 WebSocket 默认、MQTT 可选 | [x] | `docs/mqtt-integration.md` |
 
 ---
 
@@ -211,6 +213,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | 报告截图清单 | [x] | `docs/screenshot-checklist.md` |
 | 本对照清单 | [x] | `docs/todo-checklist.md` |
 | AI 分析报告说明 | [x] | `docs/ai-report.md` |
+| MQTT 模拟接入说明 | [x] | `docs/mqtt-integration.md` |
 
 ---
 
@@ -245,7 +248,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 
 1. **达梦实机联调 + 截图**（P0-1 唯一未实机项）
 2. **一键演示重置**（P2-10，答辩当天保险）
-3. MQTT / 审计日志（时间充裕再加）
+3. 审计日志（时间充裕再加）
 
 ---
 
@@ -255,7 +258,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 |------|--------|----------|--------|
 | P0 | 17 | 0 | 1（实机验收） |
 | P1 | 38 | 0 | 0 |
-| P2 | 0 | 0 | 14 |
+| P2 | 7 | 0 | 7 |
 | P3 | 5 | 1 | 0 |
 
 > 勾选方式：直接在本文档把 `[ ]` 改成 `[x]`，或用 IDE 任务插件跟踪。

@@ -9,6 +9,7 @@ from typing import Any, Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.database import SessionLocal
 from app.core.ws_manager import ws_manager
 from app.models.constants import (
@@ -76,12 +77,20 @@ class MonitorService:
             raise HTTPException(status_code=400, detail="仅执行中的试验可开启实时监控")
 
     def get_status(self, experiment_id: int) -> MonitorStatusOut:
+        settings = get_settings()
         runner = self.get_runner(experiment_id)
+        mqtt_connected = None
+        if settings.enable_mqtt:
+            from app.services.mqtt_service import mqtt_service
+
+            mqtt_connected = mqtt_service.is_connected
         return MonitorStatusOut(
             experiment_id=experiment_id,
             running=runner.running,
             connected_clients=ws_manager.client_count(experiment_id),
             frame_count=runner.state.frame_count,
+            data_source="mqtt" if settings.enable_mqtt else "websocket_sim",
+            mqtt_connected=mqtt_connected,
         )
 
     async def start_simulation(self, experiment_id: int) -> MonitorStatusOut:
@@ -90,7 +99,8 @@ class MonitorService:
         if runner.running:
             return self.get_status(experiment_id)
         runner.running = True
-        runner.task = asyncio.create_task(self._simulation_loop(experiment_id))
+        if not get_settings().enable_mqtt:
+            runner.task = asyncio.create_task(self._simulation_loop(experiment_id))
         return self.get_status(experiment_id)
 
     async def stop_simulation(self, experiment_id: int) -> MonitorStatusOut:
@@ -131,7 +141,7 @@ class MonitorService:
             while runner.running:
                 frame = self._generate_frame(experiment_id, runner.state)
                 await ws_manager.broadcast(experiment_id, frame)
-                await asyncio.to_thread(self._persist_frame, experiment_id, frame)
+                await asyncio.to_thread(self.persist_frame, experiment_id, frame)
                 await asyncio.sleep(self._tick_interval)
         except asyncio.CancelledError:
             runner.running = False
@@ -239,7 +249,8 @@ class MonitorService:
             db.close()
         return None
 
-    def _persist_frame(self, experiment_id: int, frame: dict[str, Any]) -> None:
+    @staticmethod
+    def persist_frame(experiment_id: int, frame: dict[str, Any]) -> None:
         db = SessionLocal()
         try:
             repo = SensorRepository(db)

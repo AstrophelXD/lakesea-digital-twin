@@ -3,8 +3,14 @@ from fastapi import APIRouter, Query
 from app.core.deps import CurrentUser, DbSession
 from app.core.response import success
 from app.services.monitor_service import MonitorService
+from app.services.mqtt_service import mqtt_service
 
 router = APIRouter(prefix="/api/monitor", tags=["实时监控"])
+
+
+@router.get("/mqtt/info")
+def mqtt_info(_: CurrentUser):
+    return success(mqtt_service.get_info().model_dump(by_alias=True))
 
 
 @router.get("/{experiment_id}/status")

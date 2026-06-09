@@ -40,6 +40,7 @@
 | 告警 | `/api/alarms` | 告警查询与处理 |
 | 文件 | `/api/files` | 文件上传下载 |
 | AI | `/api/ai/reports` | AI 报告生成与查询 |
+| 监控 | `/api/monitor` | 模拟/MQTT 监控控制与状态 |
 | WebSocket | `/ws/monitor/{experiment_id}` | 实时监控推送 |
 
 ---
@@ -329,6 +330,20 @@
 1. 轨迹点列表。
 2. 关键传感器时间序列。
 3. 告警点列表。
+
+## 6.8 实时监控与 MQTT
+
+`POST /api/monitor/{experimentId}/start` — 开始监控（默认内置模拟；`ENABLE_MQTT=true` 时等待 MQTT 数据）
+
+`POST /api/monitor/{experimentId}/stop` — 停止监控
+
+`GET /api/monitor/{experimentId}/status` — 返回 `dataSource`（`websocket_sim` / `mqtt`）、`mqttConnected`
+
+`GET /api/monitor/mqtt/info` — MQTT 开关、Broker 连接、订阅主题
+
+`POST /api/monitor/{experimentId}/demo-alarm` — 演示告警
+
+详见 [mqtt-integration.md](./mqtt-integration.md)。
 
 ---
 

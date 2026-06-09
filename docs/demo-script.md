@@ -44,9 +44,17 @@
 ## 8. 数字孪生监控
 
 - 路径：数字孪生监控
-- 点击「模拟试验开始」
-- 展示：模型船移动、轨迹线、实时曲线、WebSocket 状态
+- **默认模式**（`ENABLE_MQTT=false`）：点击「模拟试验开始」
+- 展示：模型船移动、轨迹线、实时曲线、WebSocket 状态、数据源标签
 - 点击演示按钮触发低电量/越界告警
+
+**可选 MQTT 加分演示**（见 [mqtt-integration.md](./mqtt-integration.md)）：
+
+1. `backend/.env` 设 `ENABLE_MQTT=true` 并重启后端
+2. 启动 Mosquitto Broker
+3. 监控页「开始监控」后，另开终端运行：
+   `python -m scripts.mock_mqtt_publisher --experiment-id <ID>`
+4. 说明：传感器经 MQTT 上报 → 后端入库 → WebSocket 推送大屏
 
 ## 9. 完成试验并归档
 

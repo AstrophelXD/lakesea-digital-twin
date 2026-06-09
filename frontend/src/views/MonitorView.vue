@@ -6,10 +6,12 @@ import { listExperiments, type ExperimentTask } from '@/api/experiment'
 import {
   buildMonitorWsUrl,
   getMonitorStatus,
+  getMqttInfo,
   startMonitor,
   stopMonitor,
   triggerDemoAlarm,
   type MonitorFrame,
+  type MqttInfo,
 } from '@/api/monitor'
 import { listAlarms, type AlarmRecord } from '@/api/alarm'
 import TwinScene from '@/components/TwinScene.vue'
@@ -26,6 +28,13 @@ const latestFrame = ref<MonitorFrame | null>(null)
 const frameHistory = ref<MonitorFrame[]>([])
 const tracks = ref<{ x: number; y: number }[]>([])
 const recentAlarms = ref<AlarmRecord[]>([])
+const mqttInfo = ref<MqttInfo | null>(null)
+
+const isMqttMode = computed(() => mqttInfo.value?.enabled === true)
+
+const dataSourceLabel = computed(() =>
+  isMqttMode.value ? 'MQTT 接入' : 'WebSocket 内置模拟',
+)
 
 let ws: WebSocket | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -50,6 +59,11 @@ const wsStatusLabel = computed(() => {
   const map = { connected: '已连接', reconnecting: '重连中', disconnected: '已断开' }
   return map[wsStatus.value]
 })
+
+async function loadMqttInfo() {
+  const { data } = await getMqttInfo()
+  mqttInfo.value = data.data!
+}
 
 async function loadExperiments() {
   const [running, ready] = await Promise.all([
@@ -126,7 +140,7 @@ async function onStart() {
   connectWs()
   await startMonitor(selectedId.value)
   monitorRunning.value = true
-  ElMessage.success('模拟试验已启动')
+  ElMessage.success(isMqttMode.value ? '监控已启动，请运行 MQTT 发布器推送数据' : '模拟试验已启动')
 }
 
 async function onStop() {
@@ -162,7 +176,7 @@ function onExperimentChange() {
 }
 
 onMounted(async () => {
-  await loadExperiments()
+  await Promise.all([loadExperiments(), loadMqttInfo()])
   await refreshStatus()
   await loadAlarms()
   if (selectedId.value && monitorRunning.value) connectWs()
@@ -180,10 +194,19 @@ onUnmounted(() => {
         <el-tag :type="wsStatus === 'connected' ? 'success' : wsStatus === 'reconnecting' ? 'warning' : 'info'">
           WebSocket {{ wsStatusLabel }}
         </el-tag>
-        <el-tag :type="monitorRunning ? 'success' : 'warning'">
-          模拟 {{ monitorRunning ? '运行中' : '已停止' }}
+        <el-tag type="primary">{{ dataSourceLabel }}</el-tag>
+        <el-tag
+          v-if="isMqttMode"
+          :type="mqttInfo?.connected ? 'success' : 'danger'"
+        >
+          MQTT {{ mqttInfo?.connected ? '已连接 Broker' : '未连接 Broker' }}
         </el-tag>
-        <el-button type="success" :disabled="!selectedId" @click="onStart">模拟试验开始</el-button>
+        <el-tag :type="monitorRunning ? 'success' : 'warning'">
+          监控 {{ monitorRunning ? '运行中' : '已停止' }}
+        </el-tag>
+        <el-button type="success" :disabled="!selectedId" @click="onStart">
+          {{ isMqttMode ? '开始监控' : '模拟试验开始' }}
+        </el-button>
         <el-button :disabled="!selectedId" @click="onStop">暂停 / 结束</el-button>
         <el-divider direction="vertical" />
         <el-button size="small" :disabled="!monitorRunning" @click="onDemoAlarm('LOW_BATTERY')">低电量告警</el-button>
@@ -218,6 +241,23 @@ onUnmounted(() => {
             show-icon
             class="side-tip"
           />
+          <el-alert
+            v-if="isMqttMode"
+            title="MQTT 模式：需启动 Broker 并运行 mock_mqtt_publisher"
+            type="warning"
+            :closable="false"
+            show-icon
+            class="side-tip"
+          >
+            <template #default>
+              <div class="mqtt-hint">
+                主题：{{ mqttInfo?.subscribedTopic?.replace('/+/', `/${selectedId ?? '{id}'}/`) }}
+              </div>
+              <div class="mqtt-hint">
+                命令：python -m scripts.mock_mqtt_publisher --experiment-id {{ selectedId ?? 'ID' }}
+              </div>
+            </template>
+          </el-alert>
           <div v-if="latestFrame" class="device-list">
             <div class="device-item">模型船 {{ latestFrame.shipCode }}</div>
             <div class="device-item">IMU 传感器</div>
@@ -285,6 +325,11 @@ onUnmounted(() => {
 }
 .side-tip {
   margin-top: 12px;
+}
+.mqtt-hint {
+  font-size: 12px;
+  line-height: 1.6;
+  word-break: break-all;
 }
 .device-list {
   margin-top: 16px;

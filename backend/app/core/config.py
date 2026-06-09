@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     deepseek_model: str = "deepseek-chat"
     mock_ai: bool = True
 
+    # MQTT 模拟接入（默认关闭，使用 WebSocket 内置模拟）
+    enable_mqtt: bool = False
+    mqtt_broker_host: str = "127.0.0.1"
+    mqtt_broker_port: int = 1883
+    mqtt_topic_prefix: str = "lakesea/experiment"
+    mqtt_client_id: str = "lakesea-backend"
+    mqtt_username: str = ""
+    mqtt_password: str = ""
+
     @property
     def cors_origin_list(self) -> List[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

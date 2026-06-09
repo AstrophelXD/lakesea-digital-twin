@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class MonitorFrame(BaseModel):
@@ -25,6 +25,54 @@ class MonitorStatusOut(BaseModel):
     running: bool
     connected_clients: int = Field(serialization_alias="connectedClients")
     frame_count: int = Field(serialization_alias="frameCount")
+    data_source: str = Field("websocket_sim", serialization_alias="dataSource")
+    mqtt_connected: Optional[bool] = Field(None, serialization_alias="mqttConnected")
+
+    model_config = {"populate_by_name": True}
+
+
+class MqttPosition(BaseModel):
+    x: float
+    y: float
+
+
+class MqttSensorPayload(BaseModel):
+    experiment_id: Optional[int] = Field(None, alias="experimentId")
+    ship_code: str = Field("M-001", alias="shipCode")
+    timestamp: datetime | str
+    position: MqttPosition
+    speed: float
+    heading: float
+    roll: float = 0.0
+    pitch: float = 0.0
+    battery: float
+    resistance: float
+
+    model_config = {"populate_by_name": True}
+
+    @field_validator("timestamp", mode="before")
+    @classmethod
+    def parse_timestamp(cls, value: Any) -> datetime | str:
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, str):
+            for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
+                try:
+                    return datetime.strptime(value, fmt)
+                except ValueError:
+                    continue
+            return value
+        return value
+
+
+class MqttInfoOut(BaseModel):
+    enabled: bool
+    connected: bool
+    broker_host: str = Field(serialization_alias="brokerHost")
+    broker_port: int = Field(serialization_alias="brokerPort")
+    topic_prefix: str = Field(serialization_alias="topicPrefix")
+    subscribed_topic: str = Field(serialization_alias="subscribedTopic")
+    data_source: str = Field(serialization_alias="dataSource")
 
     model_config = {"populate_by_name": True}
 
