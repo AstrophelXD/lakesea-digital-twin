@@ -164,12 +164,14 @@ P3  代码质量与报告支撑
 
 ### 9. 审计日志
 
-| 任务 | 状态 |
-|------|------|
-| `SYS_OPERATION_LOG` 表 | [ ] |
-| 记录登录/预约/审批/资源/告警/AI 等操作 | [ ] |
-| 后端统一日志装饰器或中间件 | [ ] |
-| 前端「操作日志」页（仅管理员） | [ ] |
+| 任务 | 状态 | 说明 / 文件 |
+|------|------|-------------|
+| `SYS_OPERATION_LOG` 表 | [x] | `init_db.sql` + ORM `SysOperationLog` |
+| 记录登录/预约/审批/资源/告警/AI 等操作 | [x] | 各 Service 埋点 |
+| 后端统一日志装饰器或中间件 | [x] | `AuditService` + IP 中间件 + `@audited` |
+| `GET /api/audit/logs` | [x] | 仅 ADMIN |
+| 前端「操作日志」页（仅管理员） | [x] | `OperationLogView.vue` |
+| 审计日志文档 | [x] | `docs/audit-log.md` |
 
 ---
 
@@ -214,6 +216,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | 本对照清单 | [x] | `docs/todo-checklist.md` |
 | AI 分析报告说明 | [x] | `docs/ai-report.md` |
 | MQTT 模拟接入说明 | [x] | `docs/mqtt-integration.md` |
+| 操作审计日志说明 | [x] | `docs/audit-log.md` |
 
 ---
 
@@ -237,7 +240,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 [ ] 13. 完成试验并归档
 [ ] 14. 归档页时间轴回放
 [ ] 15. 生成 AI 分析报告（含数据摘要、调用日志）
-[ ] 16. 达梦库中查看主从表、任务、告警、AI_REPORT、AI_CALL_LOG 数据
+[ ] 16. 达梦库中查看主从表、任务、告警、AI_REPORT、AI_CALL_LOG、SYS_OPERATION_LOG 数据
 ```
 
 ---
@@ -248,7 +251,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 
 1. **达梦实机联调 + 截图**（P0-1 唯一未实机项）
 2. **一键演示重置**（P2-10，答辩当天保险）
-3. 审计日志（时间充裕再加）
+3. 一键演示重置（P2-10）
 
 ---
 
@@ -258,7 +261,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 |------|--------|----------|--------|
 | P0 | 17 | 0 | 1（实机验收） |
 | P1 | 38 | 0 | 0 |
-| P2 | 7 | 0 | 7 |
+| P2 | 13 | 0 | 4 |
 | P3 | 5 | 1 | 0 |
 
 > 勾选方式：直接在本文档把 `[ ]` 改成 `[x]`，或用 IDE 任务插件跟踪。

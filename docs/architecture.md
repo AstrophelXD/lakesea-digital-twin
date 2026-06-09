@@ -119,6 +119,7 @@ DeepSeek API / 模拟数据源 / MQTT 可选
 | 实时通信 | WebSocket | 实时推送状态、传感器和告警 |
 | 模拟数据 | 后端定时任务/后台协程 | 默认生成试验监控演示数据 |
 | MQTT 接入 | paho-mqtt 订阅（可选） | 外部传感器模拟发布，写入 SENSOR_DATA |
+| 审计日志 | `SYS_OPERATION_LOG` + Service 埋点 | 登录、审批、资源、试验、告警、AI 等操作留痕 |
 | AI 接口 | DeepSeek API | 生成试验分析报告 |
 
 ### 4.3 主业务流程

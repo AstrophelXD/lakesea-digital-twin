@@ -37,6 +37,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '用户管理', menu: 'users', roles: ['ADMIN'] },
       },
       {
+        path: 'audit-logs',
+        name: 'audit-logs',
+        component: () => import('@/views/OperationLogView.vue'),
+        meta: { title: '操作日志', menu: 'audit-logs', roles: ['ADMIN'] },
+      },
+      {
         path: 'resources',
         name: 'resources',
         component: () => import('@/views/ResourceView.vue'),

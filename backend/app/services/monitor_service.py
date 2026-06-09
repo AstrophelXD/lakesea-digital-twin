@@ -26,6 +26,8 @@ from app.models.constants import (
     SPEED_LIMIT,
 )
 from app.models.monitor import AlarmRecord, SensorData, ShipTrack
+from app.models.user import SysUser
+from app.services.audit_service import AuditService
 from app.repositories.alarm_repository import AlarmRepository
 from app.repositories.experiment_repository import ExperimentRepository
 from app.repositories.sensor_repository import SensorRepository
@@ -93,7 +95,7 @@ class MonitorService:
             mqtt_connected=mqtt_connected,
         )
 
-    async def start_simulation(self, experiment_id: int) -> MonitorStatusOut:
+    async def start_simulation(self, experiment_id: int, operator: SysUser) -> MonitorStatusOut:
         self._ensure_running_task(experiment_id)
         runner = self.get_runner(experiment_id)
         if runner.running:
@@ -101,9 +103,16 @@ class MonitorService:
         runner.running = True
         if not get_settings().enable_mqtt:
             runner.task = asyncio.create_task(self._simulation_loop(experiment_id))
+        AuditService(self.db).log_user(
+            operator,
+            "MONITOR",
+            "START",
+            target_type="Experiment",
+            target_id=experiment_id,
+        )
         return self.get_status(experiment_id)
 
-    async def stop_simulation(self, experiment_id: int) -> MonitorStatusOut:
+    async def stop_simulation(self, experiment_id: int, operator: SysUser) -> MonitorStatusOut:
         runner = self.get_runner(experiment_id)
         runner.running = False
         if runner.task and not runner.task.done():
@@ -113,6 +122,13 @@ class MonitorService:
             except asyncio.CancelledError:
                 pass
         runner.task = None
+        AuditService(self.db).log_user(
+            operator,
+            "MONITOR",
+            "FINISH",
+            target_type="Experiment",
+            target_id=experiment_id,
+        )
         return self.get_status(experiment_id)
 
     @classmethod

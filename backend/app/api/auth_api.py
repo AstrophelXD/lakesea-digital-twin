@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.core.deps import CurrentUser, DbSession
+from app.services.audit_service import AuditService
 from app.core.response import success
 from app.schemas.auth_schema import LoginRequest
 from app.services.auth_service import AuthService
@@ -21,6 +22,6 @@ def profile(current_user: CurrentUser, db: DbSession):
 
 
 @router.post("/logout")
-def logout():
-    # JWT 无状态，客户端清除 Token 即可
+def logout(current_user: CurrentUser, db: DbSession):
+    AuditService(db).log_user(current_user, "AUTH", "LOGOUT")
     return success(message="已退出登录")

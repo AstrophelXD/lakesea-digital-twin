@@ -160,6 +160,7 @@ lakesea-digital-twin/
 - 试验归档、轨迹回放与文件管理
 - AI 报告生成（五段结构、数据摘要预览、调用日志；支持 `MOCK_AI` 与 DeepSeek API，见 [docs/ai-report.md](./docs/ai-report.md)）
 - MQTT 模拟接入（可选，`ENABLE_MQTT=true` + `mock_mqtt_publisher`，见 [docs/mqtt-integration.md](./docs/mqtt-integration.md)）
+- 操作审计日志（`SYS_OPERATION_LOG`，管理员操作日志页，见 [docs/audit-log.md](./docs/audit-log.md)）
 
 可选后续增强：
 
@@ -227,12 +228,13 @@ lakesea-digital-twin/
 - [x] 试验归档回放（时间轴/告警标记/导出/文件上传）见 [docs/archive-replay.md](./docs/archive-replay.md)
 - [x] AI 分析报告工作流（摘要预览/调用日志/五段展示）见 [docs/ai-report.md](./docs/ai-report.md)
 - [x] MQTT 模拟接入（WebSocket 默认 / MQTT 可选）见 [docs/mqtt-integration.md](./docs/mqtt-integration.md)
+- [x] 操作审计日志（Service 埋点 + 管理员查询页）见 [docs/audit-log.md](./docs/audit-log.md)
 - [x] 答辩演示脚本与截图清单
 
 ### 可选增强
 
 - [x] MQTT 模拟数据接入（可选，`docs/mqtt-integration.md`）
-- [ ] 操作审计日志（`SYS_OPERATION_LOG`）
+- [x] 操作审计日志（`SYS_OPERATION_LOG`，见 [docs/audit-log.md](./docs/audit-log.md)）
 - [ ] 一键演示数据重置脚本
 
 ---

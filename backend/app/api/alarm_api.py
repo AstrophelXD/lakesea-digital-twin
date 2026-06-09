@@ -36,5 +36,5 @@ def handle_alarm(
     db: DbSession,
     current_user: HandlerUser,
 ):
-    result = AlarmService(db).handle_alarm(alarm_id, payload, current_user.id)
+    result = AlarmService(db).handle_alarm(alarm_id, payload, current_user)
     return success(result.model_dump(by_alias=True))

@@ -40,9 +40,9 @@ def get_resource(resource_id: int, db: DbSession, _: CurrentUser):
 def create_resource(
     payload: ResourceCreate,
     db: DbSession,
-    _: MaintainerUser,
+    current_user: MaintainerUser,
 ):
-    result = ResourceService(db).create_resource(payload)
+    result = ResourceService(db).create_resource(payload, current_user)
     return success(result.model_dump(by_alias=True))
 
 
@@ -51,9 +51,9 @@ def update_resource(
     resource_id: int,
     payload: ResourceUpdate,
     db: DbSession,
-    _: MaintainerUser,
+    current_user: MaintainerUser,
 ):
-    result = ResourceService(db).update_resource(resource_id, payload)
+    result = ResourceService(db).update_resource(resource_id, payload, current_user)
     return success(result.model_dump(by_alias=True))
 
 
@@ -62,9 +62,9 @@ def update_resource_status(
     resource_id: int,
     payload: ResourceStatusUpdate,
     db: DbSession,
-    _: StatusUser,
+    current_user: StatusUser,
 ):
-    result = ResourceService(db).update_status(resource_id, payload)
+    result = ResourceService(db).update_status(resource_id, payload, current_user)
     return success(result.model_dump(by_alias=True))
 
 
@@ -72,7 +72,7 @@ def update_resource_status(
 def delete_resource(
     resource_id: int,
     db: DbSession,
-    _: AdminUser,
+    current_user: AdminUser,
 ):
-    ResourceService(db).delete_resource(resource_id)
+    ResourceService(db).delete_resource(resource_id, current_user)
     return success(message="资源已停用")

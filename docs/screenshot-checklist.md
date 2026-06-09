@@ -7,6 +7,7 @@
 - [ ] 登录页（不同角色账号列表备注）
 - [ ] 首页驾驶舱（统计卡片 + 图表 + 数据库类型）
 - [ ] 用户管理页（仅 ADMIN 可见）
+- [ ] 操作日志页（筛选 + 表格，仅 ADMIN）
 - [ ] 试验预约列表 + 主从表详情弹窗
 - [ ] 资源冲突检测提示
 - [ ] 审批流程步骤条 + 审批日志时间线
@@ -32,7 +33,7 @@
 - [ ] 达梦管理工具连接界面
 - [ ] 表结构截图（含外键约束）
 - [ ] `EXP_RESERVATION` / `EXP_RESERVATION_RESOURCE` 主从表数据
-- [ ] `EXPERIMENT_TASK`、`ALARM_RECORD`、`AI_REPORT`、`AI_CALL_LOG` 数据
+- [ ] `EXPERIMENT_TASK`、`ALARM_RECORD`、`AI_REPORT`、`AI_CALL_LOG`、`SYS_OPERATION_LOG` 数据
 - [ ] 页面数据与库表数据对比
 
 ## 接口与实时

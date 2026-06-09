@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.ai_api import reports_router as ai_reports_router
 from app.api.ai_api import router as ai_router
+from app.api.audit_api import router as audit_router
 from app.api.dashboard_api import router as dashboard_router
 from app.api.health_api import router as health_router
 from app.api.alarm_api import router as alarm_router
@@ -18,6 +19,7 @@ from app.api.reservation_api import router as reservation_router
 from app.api.resource_api import router as resource_router
 from app.api.user_api import router as user_router
 from app.api.ws_monitor import router as ws_router
+from app.core.audit_context import request_ip
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.core.response import error
@@ -64,6 +66,19 @@ app.include_router(ws_router)
 app.include_router(file_router)
 app.include_router(ai_router)
 app.include_router(ai_reports_router)
+app.include_router(audit_router)
+
+
+@app.middleware("http")
+async def capture_client_ip(request: Request, call_next):
+    client = request.client.host if request.client else None
+    forwarded = request.headers.get("X-Forwarded-For")
+    ip = forwarded.split(",")[0].strip() if forwarded else client
+    token = request_ip.set(ip)
+    try:
+        return await call_next(request)
+    finally:
+        request_ip.reset(token)
 
 
 @app.get("/api/health")

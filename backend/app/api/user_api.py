@@ -29,14 +29,14 @@ def list_users(
 
 
 @router.post("")
-def create_user(payload: UserCreate, db: DbSession, _: AdminUser):
-    result = UserService(db).create_user(payload)
+def create_user(payload: UserCreate, db: DbSession, current_user: AdminUser):
+    result = UserService(db).create_user(payload, current_user)
     return success(result.model_dump(by_alias=True))
 
 
 @router.put("/{user_id}")
-def update_user(user_id: int, payload: UserUpdate, db: DbSession, _: AdminUser):
-    result = UserService(db).update_user(user_id, payload)
+def update_user(user_id: int, payload: UserUpdate, db: DbSession, current_user: AdminUser):
+    result = UserService(db).update_user(user_id, payload, current_user)
     return success(result.model_dump(by_alias=True))
 
 
@@ -45,15 +45,15 @@ def reset_password(
     user_id: int,
     payload: ResetPasswordRequest,
     db: DbSession,
-    _: AdminUser,
+    current_user: AdminUser,
 ):
-    UserService(db).reset_password(user_id, payload)
+    UserService(db).reset_password(user_id, payload, current_user)
     return success(None, message="密码已重置")
 
 
 @router.post("/{user_id}/disable")
-def toggle_disable(user_id: int, db: DbSession, _: AdminUser):
-    result = UserService(db).disable_user(user_id)
+def toggle_disable(user_id: int, db: DbSession, current_user: AdminUser):
+    result = UserService(db).disable_user(user_id, current_user)
     return success(result.model_dump(by_alias=True))
 
 

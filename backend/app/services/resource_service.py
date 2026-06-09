@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.models.constants import DISABLED, RESOURCE_UNAVAILABLE
 from app.models.resource import LabResource
+from app.models.user import SysUser
 from app.repositories.resource_repository import ResourceRepository
+from app.services.audit_service import AuditService
 from app.schemas.common import PageResult
 from app.schemas.resource_schema import (
     ResourceCreate,
@@ -42,7 +44,7 @@ class ResourceService:
             raise HTTPException(status_code=404, detail="资源不存在")
         return ResourceOut.model_validate(resource)
 
-    def create_resource(self, payload: ResourceCreate) -> ResourceOut:
+    def create_resource(self, payload: ResourceCreate, operator: SysUser) -> ResourceOut:
         from sqlalchemy import select
 
         dup = self.db.scalar(
@@ -66,9 +68,19 @@ class ResourceService:
         self.repo.create(resource)
         self.db.commit()
         self.db.refresh(resource)
+        AuditService(self.db).log_user(
+            operator,
+            "RESOURCE",
+            "CREATE",
+            target_type="Resource",
+            target_id=resource.id,
+            detail=resource.resource_name,
+        )
         return ResourceOut.model_validate(resource)
 
-    def update_resource(self, resource_id: int, payload: ResourceUpdate) -> ResourceOut:
+    def update_resource(
+        self, resource_id: int, payload: ResourceUpdate, operator: SysUser
+    ) -> ResourceOut:
         resource = self.repo.get_by_id(resource_id)
         if not resource:
             raise HTTPException(status_code=404, detail="资源不存在")
@@ -78,24 +90,50 @@ class ResourceService:
                 setattr(resource, k, v)
         self.db.commit()
         self.db.refresh(resource)
+        AuditService(self.db).log_user(
+            operator,
+            "RESOURCE",
+            "UPDATE",
+            target_type="Resource",
+            target_id=resource.id,
+            detail=resource.resource_name,
+        )
         return ResourceOut.model_validate(resource)
 
-    def update_status(self, resource_id: int, payload: ResourceStatusUpdate) -> ResourceOut:
+    def update_status(
+        self, resource_id: int, payload: ResourceStatusUpdate, operator: SysUser
+    ) -> ResourceOut:
         resource = self.repo.get_by_id(resource_id)
         if not resource:
             raise HTTPException(status_code=404, detail="资源不存在")
         resource.status = payload.status
         self.db.commit()
         self.db.refresh(resource)
+        AuditService(self.db).log_user(
+            operator,
+            "RESOURCE",
+            "UPDATE",
+            target_type="Resource",
+            target_id=resource.id,
+            detail=f"状态→{payload.status}",
+        )
         return ResourceOut.model_validate(resource)
 
-    def delete_resource(self, resource_id: int) -> None:
+    def delete_resource(self, resource_id: int, operator: SysUser) -> None:
         resource = self.repo.get_by_id(resource_id)
         if not resource:
             raise HTTPException(status_code=404, detail="资源不存在")
         resource.status = DISABLED
         resource.is_deleted = 1
         self.db.commit()
+        AuditService(self.db).log_user(
+            operator,
+            "RESOURCE",
+            "DELETE",
+            target_type="Resource",
+            target_id=resource.id,
+            detail=resource.resource_name,
+        )
 
     def ensure_bookable(self, resource_id: int) -> LabResource:
         resource = self.repo.get_by_id(resource_id)

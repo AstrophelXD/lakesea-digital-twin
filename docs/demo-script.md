@@ -76,7 +76,15 @@
 
 详见 [docs/ai-report.md](./ai-report.md)
 
-## 11. 达梦数据库验证
+## 11. 操作审计日志（管理员）
+
+- 用 `admin` 登录 → **操作日志**
+- 筛选模块「试验预约」或「认证」，展示刚才演示产生的记录
+- 说明：登录、审批、试验流转等关键操作均写入 `SYS_OPERATION_LOG`
+
+详见 [docs/audit-log.md](./audit-log.md)
+
+## 12. 达梦数据库验证
 
 - 打开达梦管理工具
 - 查看 `EXP_RESERVATION`、`EXP_RESERVATION_RESOURCE` 主从表数据

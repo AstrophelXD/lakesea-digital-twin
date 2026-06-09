@@ -20,16 +20,16 @@ async def monitor_status(experiment_id: int, db: DbSession, _: CurrentUser):
 
 
 @router.post("/{experiment_id}/start")
-async def start_monitor(experiment_id: int, db: DbSession, _: CurrentUser):
+async def start_monitor(experiment_id: int, db: DbSession, current_user: CurrentUser):
     svc = MonitorService(db)
-    result = await svc.start_simulation(experiment_id)
+    result = await svc.start_simulation(experiment_id, current_user)
     return success(result.model_dump(by_alias=True))
 
 
 @router.post("/{experiment_id}/stop")
-async def stop_monitor(experiment_id: int, db: DbSession, _: CurrentUser):
+async def stop_monitor(experiment_id: int, db: DbSession, current_user: CurrentUser):
     svc = MonitorService(db)
-    result = await svc.stop_simulation(experiment_id)
+    result = await svc.stop_simulation(experiment_id, current_user)
     return success(result.model_dump(by_alias=True))
 
 

@@ -30,26 +30,26 @@ def get_experiment(task_id: int, db: DbSession, _: CurrentUser):
 
 
 @router.post("/{task_id}/ready")
-def mark_ready(task_id: int, db: DbSession, _: CurrentUser):
-    result = ExperimentService(db).mark_ready(task_id)
+def mark_ready(task_id: int, db: DbSession, current_user: CurrentUser):
+    result = ExperimentService(db).mark_ready(task_id, current_user)
     return success(result.model_dump(by_alias=True))
 
 
 @router.post("/{task_id}/start")
-def start_experiment(task_id: int, db: DbSession, _: CurrentUser):
-    result = ExperimentService(db).start(task_id)
+def start_experiment(task_id: int, db: DbSession, current_user: CurrentUser):
+    result = ExperimentService(db).start(task_id, current_user)
     return success(result.model_dump(by_alias=True))
 
 
 @router.post("/{task_id}/finish")
-def finish_experiment(task_id: int, db: DbSession, _: CurrentUser):
-    result = ExperimentService(db).finish(task_id)
+def finish_experiment(task_id: int, db: DbSession, current_user: CurrentUser):
+    result = ExperimentService(db).finish(task_id, current_user)
     return success(result.model_dump(by_alias=True))
 
 
 @router.post("/{task_id}/archive")
-def archive_experiment(task_id: int, db: DbSession, _: CurrentUser):
-    result = ExperimentService(db).archive(task_id)
+def archive_experiment(task_id: int, db: DbSession, current_user: CurrentUser):
+    result = ExperimentService(db).archive(task_id, current_user)
     return success(result.model_dump(by_alias=True))
 
 

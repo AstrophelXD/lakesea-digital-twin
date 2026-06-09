@@ -24,6 +24,7 @@ from app.repositories.experiment_repository import ExperimentRepository
 from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.resource_repository import ResourceRepository
 from app.repositories.user_repository import UserRepository
+from app.services.audit_service import AuditService
 from app.schemas.common import PageResult
 from app.schemas.reservation_schema import (
     ApprovalLogOut,
@@ -274,6 +275,14 @@ class ReservationService:
         )
         reservation.resources = rows
         self.db.commit()
+        AuditService(self.db).log_user(
+            applicant,
+            "RESERVATION",
+            "CREATE",
+            target_type="Reservation",
+            target_id=reservation.id,
+            detail=reservation.exp_name,
+        )
         return self.get_detail(reservation.id, applicant, self.user_repo.get_role_codes(applicant.id))
 
     def update_draft(
@@ -302,6 +311,14 @@ class ReservationService:
             reservation_id, payload.resources, payload.start_time, payload.end_time
         )
         self.db.commit()
+        AuditService(self.db).log_user(
+            user,
+            "RESERVATION",
+            "UPDATE",
+            target_type="Reservation",
+            target_id=reservation_id,
+            detail=reservation.exp_name,
+        )
         return self.get_detail(reservation_id, user, roles)
 
     def submit(self, reservation_id: int, user: SysUser, roles: List[str]) -> ReservationDetailOut:
@@ -329,6 +346,14 @@ class ReservationService:
         reservation.submit_time = datetime.now()
         reservation.reject_reason = None
         self.db.commit()
+        AuditService(self.db).log_user(
+            user,
+            "RESERVATION",
+            "SUBMIT",
+            target_type="Reservation",
+            target_id=reservation_id,
+            detail=reservation.exp_name,
+        )
         return self.get_detail(reservation_id, user, roles)
 
     def teacher_review(
@@ -371,6 +396,14 @@ class ReservationService:
             )
         )
         self.db.commit()
+        AuditService(self.db).log_user(
+            user,
+            "RESERVATION",
+            "APPROVE" if payload.approved else "REJECT",
+            target_type="Reservation",
+            target_id=reservation_id,
+            detail=payload.comment or reservation.exp_name,
+        )
         return self.get_detail(reservation_id, user, roles)
 
     def director_approve(
@@ -430,6 +463,14 @@ class ReservationService:
             )
         )
         self.db.commit()
+        AuditService(self.db).log_user(
+            user,
+            "RESERVATION",
+            "APPROVE" if payload.approved else "REJECT",
+            target_type="Reservation",
+            target_id=reservation_id,
+            detail=payload.comment or reservation.exp_name,
+        )
         return self.get_detail(reservation_id, user, roles)
 
     def cancel(self, reservation_id: int, user: SysUser, roles: List[str]) -> ReservationDetailOut:
@@ -442,4 +483,12 @@ class ReservationService:
             raise HTTPException(status_code=400, detail="当前状态不可取消")
         reservation.status = CANCELLED
         self.db.commit()
+        AuditService(self.db).log_user(
+            user,
+            "RESERVATION",
+            "CANCEL",
+            target_type="Reservation",
+            target_id=reservation_id,
+            detail=reservation.exp_name,
+        )
         return self.get_detail(reservation_id, user, roles)

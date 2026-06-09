@@ -1,4 +1,5 @@
 from app.models.archive import AiCallLog, AiReport, ExperimentFile
+from app.models.audit import SysOperationLog
 from app.models.experiment import ExperimentTask
 from app.models.monitor import AlarmRecord, SensorData, ShipTrack
 from app.models.reservation import ExpApprovalLog, ExpReservation, ExpReservationResource
@@ -20,4 +21,5 @@ __all__ = [
     "ExperimentFile",
     "AiReport",
     "AiCallLog",
+    "SysOperationLog",
 ]

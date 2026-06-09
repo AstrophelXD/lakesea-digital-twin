@@ -10,6 +10,7 @@ import {
   Fold,
   Expand,
   HomeFilled,
+  List,
   Monitor,
   Setting,
   SwitchButton,
@@ -33,6 +34,7 @@ interface MenuItem {
 const allMenus: MenuItem[] = [
   { index: '/dashboard', title: '工作台', icon: HomeFilled, menu: 'dashboard' },
   { index: '/users', title: '用户管理', icon: User, menu: 'users' },
+  { index: '/audit-logs', title: '操作日志', icon: List, menu: 'audit-logs' },
   { index: '/resources', title: '资源设备', icon: Box, menu: 'resources' },
   { index: '/reservations', title: '试验预约', icon: Calendar, menu: 'reservations' },
   { index: '/experiments', title: '试验任务', icon: Document, menu: 'experiments' },

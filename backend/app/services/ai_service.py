@@ -13,7 +13,9 @@ from app.repositories.ai_log_repository import AiLogRepository
 from app.repositories.ai_repository import AiReportRepository
 from app.repositories.alarm_repository import AlarmRepository
 from app.repositories.experiment_repository import ExperimentRepository
+from app.models.user import SysUser
 from app.repositories.sensor_repository import SensorRepository
+from app.services.audit_service import AuditService
 from app.schemas.ai_schema import (
     ANALYSIS_TYPE_LABELS,
     AiCallLogOut,
@@ -291,8 +293,9 @@ class AiService:
         return out
 
     async def generate(
-        self, experiment_id: int, user_id: int, analysis_type: str = "OVERVIEW"
+        self, experiment_id: int, user: SysUser, analysis_type: str = "OVERVIEW"
     ) -> AiReportOut:
+        user_id = user.id
         summary = self._build_summary(experiment_id)
         prompt = self._build_prompt(summary, analysis_type)
         use_mock = self.settings.mock_ai or not self.settings.deepseek_api_key
@@ -342,6 +345,14 @@ class AiService:
             )
             self.db.commit()
             self.db.refresh(report)
+            AuditService(self.db).log_user(
+                user,
+                "AI",
+                "GENERATE",
+                target_type="Experiment",
+                target_id=experiment_id,
+                detail=f"{analysis_type} / {model_name}",
+            )
             return self._to_report_out(report, is_mock, analysis_type)
         except HTTPException as exc:
             duration_ms = int((time.monotonic() - start) * 1000)

@@ -24,6 +24,7 @@ CORE_TABLES = [
     "EXPERIMENT_FILE",
     "AI_REPORT",
     "AI_CALL_LOG",
+    "SYS_OPERATION_LOG",
 ]
 
 

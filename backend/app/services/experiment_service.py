@@ -10,7 +10,9 @@ from app.repositories.file_repository import FileRepository
 from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.sensor_repository import SensorRepository
 from app.schemas.alarm_schema import AlarmOut
+from app.models.user import SysUser
 from app.repositories.ai_repository import AiReportRepository
+from app.services.audit_service import AuditService
 from app.schemas.archive_schema import (
     AiReportBrief,
     ExperimentFileOut,
@@ -57,16 +59,24 @@ class ExperimentService:
             raise HTTPException(status_code=404, detail="试验任务不存在")
         return task
 
-    def mark_ready(self, task_id: int) -> ExperimentOut:
+    def mark_ready(self, task_id: int, operator: SysUser) -> ExperimentOut:
         task = self._get_task_or_404(task_id)
         if task.status != PENDING_PREPARE:
             raise HTTPException(status_code=400, detail="仅待准备状态可标记为已准备")
         task.status = READY
         self.db.commit()
         self.db.refresh(task)
+        AuditService(self.db).log_user(
+            operator,
+            "EXPERIMENT",
+            "READY",
+            target_type="Experiment",
+            target_id=task_id,
+            detail=task.exp_name,
+        )
         return ExperimentOut.model_validate(task)
 
-    def start(self, task_id: int) -> ExperimentOut:
+    def start(self, task_id: int, operator: SysUser) -> ExperimentOut:
         from datetime import datetime
 
         task = self._get_task_or_404(task_id)
@@ -76,9 +86,17 @@ class ExperimentService:
         task.actual_start_time = datetime.now()
         self.db.commit()
         self.db.refresh(task)
+        AuditService(self.db).log_user(
+            operator,
+            "EXPERIMENT",
+            "START",
+            target_type="Experiment",
+            target_id=task_id,
+            detail=task.exp_name,
+        )
         return ExperimentOut.model_validate(task)
 
-    def finish(self, task_id: int) -> ExperimentOut:
+    def finish(self, task_id: int, operator: SysUser) -> ExperimentOut:
         from datetime import datetime
 
         from app.services.monitor_service import MonitorService
@@ -94,9 +112,17 @@ class ExperimentService:
             reservation.status = "COMPLETED"
         self.db.commit()
         self.db.refresh(task)
+        AuditService(self.db).log_user(
+            operator,
+            "EXPERIMENT",
+            "FINISH",
+            target_type="Experiment",
+            target_id=task_id,
+            detail=task.exp_name,
+        )
         return ExperimentOut.model_validate(task)
 
-    def archive(self, task_id: int) -> ExperimentOut:
+    def archive(self, task_id: int, operator: SysUser) -> ExperimentOut:
         from datetime import datetime
 
         task = self._get_task_or_404(task_id)
@@ -109,6 +135,14 @@ class ExperimentService:
             reservation.status = "ARCHIVED"
         self.db.commit()
         self.db.refresh(task)
+        AuditService(self.db).log_user(
+            operator,
+            "EXPERIMENT",
+            "ARCHIVE",
+            target_type="Experiment",
+            target_id=task_id,
+            detail=task.exp_name,
+        )
         return ExperimentOut.model_validate(task)
 
     @staticmethod

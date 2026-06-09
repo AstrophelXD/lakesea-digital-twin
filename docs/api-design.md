@@ -41,6 +41,7 @@
 | 文件 | `/api/files` | 文件上传下载 |
 | AI | `/api/ai/reports` | AI 报告生成与查询 |
 | 监控 | `/api/monitor` | 模拟/MQTT 监控控制与状态 |
+| 审计 | `/api/audit` | 操作日志查询（ADMIN） |
 | WebSocket | `/ws/monitor/{experiment_id}` | 实时监控推送 |
 
 ---
@@ -457,13 +458,29 @@
 
 ---
 
-## 10. WebSocket 接口
+## 10. 审计日志接口
 
-## 10.1 连接地址
+## 10.1 查询操作日志
+
+`GET /api/audit/logs`（仅 ADMIN）
+
+参数：`module`、`action`、`userId`、`keyword`、`success`、`page`、`pageSize`
+
+## 10.2 模块与操作字典
+
+`GET /api/audit/meta`
+
+详见 [audit-log.md](./audit-log.md)。
+
+---
+
+## 11. WebSocket 接口
+
+## 11.1 连接地址
 
 `/ws/monitor/{experiment_id}`
 
-## 10.2 推送内容
+## 11.2 推送内容
 
 1. 模型船位置。
 2. 速度、姿态、电量、阻力。

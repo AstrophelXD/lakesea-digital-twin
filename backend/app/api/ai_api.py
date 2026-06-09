@@ -50,7 +50,7 @@ def experiment_data_summary(experiment_id: int, db: DbSession, _: CurrentUser):
 @reports_router.post("/generate")
 async def generate_report(payload: AiGenerateRequest, db: DbSession, current_user: CurrentUser):
     result = await AiService(db).generate(
-        payload.experiment_id, current_user.id, payload.analysis_type
+        payload.experiment_id, current_user, payload.analysis_type
     )
     return success(result.model_dump(by_alias=True))
 
