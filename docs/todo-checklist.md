@@ -114,15 +114,18 @@ P3  代码质量与报告支撑
 
 | 任务 | 状态 | 说明 / 文件 |
 |------|------|-------------|
-| 历史试验列表 | [x] | `ArchiveView.vue` |
-| 时间轴 slider | [x] | |
-| 模型船轨迹回放 | [x] | `TrackReplay` + slider 切片 |
-| 当前时刻传感器数据 | [x] | |
-| 曲线图同步定位 | [x] | ECharts `showTip` |
-| 导出传感器 CSV | [ ] | 待实现 |
-| 导出轨迹 JSON | [ ] | 待实现 |
-| 导出 AI 报告 Markdown/HTML | [ ] | 待实现 |
-| 文件上传（报告/原始数据/视频占位） | [~] | 已有上传，类型可再细化 |
+| 历史试验列表（左侧表格） | [x] | `ArchiveView.vue` |
+| 时间轴 slider + 播放/暂停/重置 | [x] | 统一时间轴控制 |
+| 模型船轨迹回放 | [x] | `TrackReplay` controlled 模式 |
+| 当前时刻传感器数据 | [x] | 速度/电量/阻力/横摇 |
+| 曲线图同步定位 | [x] | ECharts `showTip` + 横摇曲线 |
+| 告警点标记 + 跳转 | [x] | `alarmMarkers` + Slider marks |
+| 导出传感器 CSV | [x] | `GET .../export/sensor-csv` |
+| 导出轨迹 JSON | [x] | `GET .../export/track-json` |
+| 导出 AI 报告 Markdown/HTML | [x] | `GET .../export/ai-report?fmt=` |
+| 文件上传（报告/原始数据/视频占位） | [x] | 类型 REPORT / RAW_DATA / VIDEO |
+| 与 AI 分析页联动 | [x] | 入口按钮 + aiReport 摘要 + 导出 |
+| 归档回放文档 | [x] | `docs/archive-replay.md` |
 
 ---
 
@@ -248,7 +251,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | 级别 | 已完成 | 部分完成 | 待完成 |
 |------|--------|----------|--------|
 | P0 | 17 | 0 | 1（实机验收） |
-| P1 | 28 | 1 | 4 |
+| P1 | 35 | 0 | 1 |
 | P2 | 0 | 0 | 14 |
 | P3 | 5 | 1 | 0 |
 

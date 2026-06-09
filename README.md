@@ -223,7 +223,7 @@ lakesea-digital-twin/
 - [x] 数据库健康检查 `GET /api/health/db`
 - [x] 预约冲突检测、审批流程展示、任务跳转
 - [x] 数字孪生监控四区布局 + 演示告警按钮
-- [x] 归档时间轴回放 + AI 报告工作流
+- [x] 试验归档回放（时间轴/告警标记/导出/文件上传）见 [docs/archive-replay.md](./docs/archive-replay.md)
 - [x] 答辩演示脚本与截图清单
 
 ### 可选增强

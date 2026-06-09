@@ -10,9 +10,12 @@ from app.repositories.file_repository import FileRepository
 from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.sensor_repository import SensorRepository
 from app.schemas.alarm_schema import AlarmOut
+from app.repositories.ai_repository import AiReportRepository
 from app.schemas.archive_schema import (
+    AiReportBrief,
     ExperimentFileOut,
     ExperimentReplayOut,
+    ReplayAlarmMarker,
     ReplaySensorPoint,
     ReplayStats,
     ReplayTrackPoint,
@@ -29,6 +32,7 @@ class ExperimentService:
         self.sensor_repo = SensorRepository(db)
         self.alarm_repo = AlarmRepository(db)
         self.file_repo = FileRepository(db)
+        self.ai_repo = AiReportRepository(db)
 
     def list_tasks(
         self, status: Optional[str] = None, page: int = 1, page_size: int = 20
@@ -107,16 +111,43 @@ class ExperimentService:
         self.db.refresh(task)
         return ExperimentOut.model_validate(task)
 
+    @staticmethod
+    def _nearest_series_index(
+        series: list, alarm_time
+    ) -> int:
+        if not series:
+            return 0
+        best_idx = 0
+        best_delta = abs((series[0].timestamp - alarm_time).total_seconds())
+        for i, point in enumerate(series):
+            delta = abs((point.timestamp - alarm_time).total_seconds())
+            if delta < best_delta:
+                best_delta = delta
+                best_idx = i
+        return best_idx
+
     def get_replay(self, task_id: int) -> ExperimentReplayOut:
         task = self._get_task_or_404(task_id)
         tracks_raw = self.sensor_repo.list_tracks(task_id, 2000)
         sensors_raw = self.sensor_repo.list_sensor_series(task_id, 2000)
         alarms_raw, _ = self.alarm_repo.list_alarms(experiment_id=task_id, page_size=200)
         files_raw = self.file_repo.list_by_experiment(task_id)
+        ai_report = self.ai_repo.get_by_experiment(task_id)
 
         speeds = [float(s.speed) for s in sensors_raw if s.speed is not None]
         batteries = [float(s.battery) for s in sensors_raw if s.battery is not None]
         resistances = [float(s.resistance) for s in sensors_raw if s.resistance is not None]
+
+        alarm_markers = [
+            ReplayAlarmMarker(
+                alarm_id=a.id,
+                alarm_type=a.alarm_type,
+                alarm_message=a.alarm_message,
+                create_time=a.create_time,
+                series_index=self._nearest_series_index(sensors_raw, a.create_time),
+            )
+            for a in alarms_raw
+        ]
 
         return ExperimentReplayOut(
             task=ExperimentOut.model_validate(task),
@@ -140,6 +171,7 @@ class ExperimentService:
                 for s in sensors_raw
             ],
             alarms=[AlarmOut.model_validate(a) for a in alarms_raw],
+            alarm_markers=alarm_markers,
             files=[ExperimentFileOut.model_validate(f) for f in files_raw],
             stats=ReplayStats(
                 point_count=len(sensors_raw),
@@ -148,4 +180,5 @@ class ExperimentService:
                 max_resistance=max(resistances) if resistances else None,
                 alarm_count=len(alarms_raw),
             ),
+            ai_report=AiReportBrief.model_validate(ai_report) if ai_report else None,
         )

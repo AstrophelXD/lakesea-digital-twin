@@ -1,9 +1,11 @@
 from typing import Optional
 
 from fastapi import APIRouter, Query
+from fastapi.responses import Response
 
 from app.core.deps import CurrentUser, DbSession
 from app.core.response import success
+from app.services.archive_export_service import ArchiveExportService
 from app.services.experiment_service import ExperimentService
 
 router = APIRouter(prefix="/api/experiments", tags=["试验任务"])
@@ -55,3 +57,38 @@ def archive_experiment(task_id: int, db: DbSession, _: CurrentUser):
 def experiment_replay(task_id: int, db: DbSession, _: CurrentUser):
     result = ExperimentService(db).get_replay(task_id)
     return success(result.model_dump(by_alias=True))
+
+
+@router.get("/{task_id}/export/sensor-csv")
+def export_sensor_csv(task_id: int, db: DbSession, _: CurrentUser):
+    filename, content = ArchiveExportService(db).export_sensor_csv(task_id)
+    return Response(
+        content=content.encode("utf-8-sig"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/{task_id}/export/track-json")
+def export_track_json(task_id: int, db: DbSession, _: CurrentUser):
+    filename, content = ArchiveExportService(db).export_track_json(task_id)
+    return Response(
+        content=content.encode("utf-8"),
+        media_type="application/json; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/{task_id}/export/ai-report")
+def export_ai_report(
+    task_id: int,
+    db: DbSession,
+    _: CurrentUser,
+    fmt: str = Query("markdown", pattern="^(markdown|html)$"),
+):
+    media_type, filename, content = ArchiveExportService(db).export_ai_report(task_id, fmt)
+    return Response(
+        content=content.encode("utf-8"),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

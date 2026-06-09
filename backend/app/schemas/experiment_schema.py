@@ -12,6 +12,7 @@ class ExperimentOut(BaseModel):
     status: str
     actual_start_time: Optional[datetime] = Field(None, serialization_alias="actualStartTime")
     actual_end_time: Optional[datetime] = Field(None, serialization_alias="actualEndTime")
+    archive_time: Optional[datetime] = Field(None, serialization_alias="archiveTime")
     create_time: Optional[datetime] = Field(None, serialization_alias="createTime")
 
     model_config = {"from_attributes": True, "populate_by_name": True}

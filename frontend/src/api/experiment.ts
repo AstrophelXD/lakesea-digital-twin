@@ -8,6 +8,7 @@ export interface ExperimentTask {
   status: string
   actualStartTime?: string
   actualEndTime?: string
+  archiveTime?: string
 }
 
 export interface PageData<T> {
@@ -48,7 +49,20 @@ export interface ReplayData {
     roll?: number
   }[]
   alarms: import('@/api/alarm').AlarmRecord[]
+  alarmMarkers: {
+    alarmId: number
+    alarmType: string
+    alarmMessage?: string
+    createTime: string
+    seriesIndex: number
+  }[]
   files: import('@/api/file').ExperimentFile[]
+  aiReport?: {
+    id: number
+    reportTitle?: string
+    generatedTime: string
+    modelName?: string
+  }
   stats: {
     pointCount: number
     maxSpeed?: number
@@ -60,4 +74,44 @@ export interface ReplayData {
 
 export function getExperimentReplay(id: number) {
   return request.get<ApiResponse<ReplayData>>(`/api/experiments/${id}/replay`)
+}
+
+async function downloadExport(path: string, filename: string) {
+  const token = localStorage.getItem('token')
+  const base = import.meta.env.VITE_API_BASE_URL || ''
+  const res = await fetch(`${base}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => null)
+    throw new Error(err?.message || 'Export failed')
+  }
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+export function exportSensorCsv(experimentId: number) {
+  return downloadExport(
+    `/api/experiments/${experimentId}/export/sensor-csv`,
+    `experiment_${experimentId}_sensor.csv`,
+  )
+}
+
+export function exportTrackJson(experimentId: number) {
+  return downloadExport(
+    `/api/experiments/${experimentId}/export/track-json`,
+    `experiment_${experimentId}_track.json`,
+  )
+}
+
+export function exportAiReport(experimentId: number, format: 'markdown' | 'html' = 'markdown') {
+  return downloadExport(
+    `/api/experiments/${experimentId}/export/ai-report?fmt=${format}`,
+    `experiment_${experimentId}_ai_report.${format === 'html' ? 'html' : 'md'}`,
+  )
 }
