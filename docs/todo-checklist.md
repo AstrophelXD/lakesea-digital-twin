@@ -177,12 +177,16 @@ P3  代码质量与报告支撑
 
 ### 10. 自动化演示数据与一键重置
 
-| 任务 | 状态 |
-|------|------|
-| `python -m scripts.reset_demo_db` | [ ] |
-| `python -m scripts.seed_demo_flow` | [ ] |
-| 一键生成 5 角色 / 10 资源 / 3 预约 / 完整审批链 / 归档试验 / 传感器轨迹告警 AI 数据 | [ ] |
-| README「答辩前一键重置」命令 | [ ] |
+| 任务 | 状态 | 说明 / 文件 |
+|------|------|-------------|
+| `python -m scripts.reset_demo_db` | [x] | SQLite 删库重建 / DM8 清表 |
+| `python -m scripts.seed_demo_flow` | [x] | 完整演示流程数据 |
+| `pre-defense.bat` 答辩前一键 | [x] | 重置 + 启服 + 开浏览器 |
+| `reset-demo.bat` 仅重置库 | [x] | `--full`，不启动服务 |
+| 5 角色 / 10 资源 / 3 预约 / 审批链 / 归档试验 | [x] | `demo_seed_common.py` |
+| 传感器轨迹 + 告警 + AI 报告 | [x] | `TASK-DEMO-ARCHIVED` |
+| README「答辩前一键重置」命令 | [x] | |
+| 演示数据文档 | [x] | `docs/demo-data.md` |
 
 ---
 
@@ -217,6 +221,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | AI 分析报告说明 | [x] | `docs/ai-report.md` |
 | MQTT 模拟接入说明 | [x] | `docs/mqtt-integration.md` |
 | 操作审计日志说明 | [x] | `docs/audit-log.md` |
+| 演示数据与一键重置说明 | [x] | `docs/demo-data.md` |
 
 ---
 
@@ -251,7 +256,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 
 1. **达梦实机联调 + 截图**（P0-1 唯一未实机项）
 2. **一键演示重置**（P2-10，答辩当天保险）
-3. 一键演示重置（P2-10）
+3. 达梦实机截图（若尚未完成）
 
 ---
 
@@ -261,7 +266,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 |------|--------|----------|--------|
 | P0 | 17 | 0 | 1（实机验收） |
 | P1 | 38 | 0 | 0 |
-| P2 | 13 | 0 | 4 |
+| P2 | 17 | 0 | 0 |
 | P3 | 5 | 1 | 0 |
 
 > 勾选方式：直接在本文档把 `[ ]` 改成 `[x]`，或用 IDE 任务插件跟踪。

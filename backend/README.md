@@ -14,6 +14,14 @@ python -m scripts.seed_db
 uvicorn app.main:app --reload
 ```
 
+### 答辩前一键重置（含完整演示数据）
+
+```bash
+python -m scripts.reset_demo_db --full
+```
+
+答辩前推荐项目根目录 `pre-defense.bat`（含启服）；仅重置用 `reset-demo.bat`。详见 [docs/demo-data.md](../docs/demo-data.md)。
+
 - API 文档：http://127.0.0.1:8000/docs
 - 健康检查：http://127.0.0.1:8000/api/health
 

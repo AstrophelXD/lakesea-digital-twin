@@ -108,9 +108,10 @@ python -m venv .venv
 pip install -r requirements.txt
 pip install dmPython            # 若 requirements 中未自动安装
 python -m scripts.seed_db
+python -m scripts.reset_demo_db --full   # 可选：完整答辩演示数据
 ```
 
-种子数据将创建 5 个演示账号（密码均为 `123456`）和 5 条资源记录。
+种子数据将创建 5 个演示账号（密码均为 `123456`）和 5 条资源记录。`--full` 另含 3 条预约、已归档试验、传感器/告警/AI 报告，见 [demo-data.md](./demo-data.md)。
 
 ## 7. 启动后端
 

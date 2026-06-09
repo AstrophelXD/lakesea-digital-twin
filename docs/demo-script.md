@@ -91,9 +91,16 @@
 - 查看 `EXPERIMENT_TASK`、`ALARM_RECORD`、`AI_REPORT` 表数据
 - 与页面数据对比一致
 
-## 答辩前一键重置（可选）
+## 答辩前一键准备（推荐）
+
+**Windows：** 双击项目根目录 `pre-defense.bat`（重置演示数据 + 启动前后端 + 打开浏览器）。
+
+**命令行：**
 
 ```bash
 cd backend
-python -m scripts.seed_db
+python -m scripts.reset_demo_db --full
+# 再启动 uvicorn 与 npm run dev
 ```
+
+将生成：5 角色账号、10 条资源、3 条预约（含 `TASK-DEMO-ARCHIVED`）、传感器轨迹、告警与 AI 报告。详见 [demo-data.md](./demo-data.md)。

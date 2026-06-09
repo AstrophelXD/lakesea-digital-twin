@@ -47,3 +47,4 @@
 - [ ] `pytest` 通过截图
 - [ ] `npm run build` 通过截图
 - [ ] `python -m scripts.smoke_test` 通过截图
+- [ ] `python -m scripts.reset_demo_db --full` 输出（3 预约 / 80 传感器 / AI 报告）

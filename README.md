@@ -161,6 +161,7 @@ lakesea-digital-twin/
 - AI 报告生成（五段结构、数据摘要预览、调用日志；支持 `MOCK_AI` 与 DeepSeek API，见 [docs/ai-report.md](./docs/ai-report.md)）
 - MQTT 模拟接入（可选，`ENABLE_MQTT=true` + `mock_mqtt_publisher`，见 [docs/mqtt-integration.md](./docs/mqtt-integration.md)）
 - 操作审计日志（`SYS_OPERATION_LOG`，管理员操作日志页，见 [docs/audit-log.md](./docs/audit-log.md)）
+- 演示数据一键重置（`reset_demo_db --full`，见 [docs/demo-data.md](./docs/demo-data.md)）
 
 可选后续增强：
 
@@ -229,6 +230,7 @@ lakesea-digital-twin/
 - [x] AI 分析报告工作流（摘要预览/调用日志/五段展示）见 [docs/ai-report.md](./docs/ai-report.md)
 - [x] MQTT 模拟接入（WebSocket 默认 / MQTT 可选）见 [docs/mqtt-integration.md](./docs/mqtt-integration.md)
 - [x] 操作审计日志（Service 埋点 + 管理员查询页）见 [docs/audit-log.md](./docs/audit-log.md)
+- [x] 演示数据一键重置（`reset_demo_db` / `seed_demo_flow`）见 [docs/demo-data.md](./docs/demo-data.md)
 - [x] 答辩演示脚本与截图清单
 
 ### 可选增强
@@ -307,7 +309,20 @@ cd frontend && npm run build
 cd backend && python -m scripts.smoke_test
 ```
 
-答辩演示顺序见 [docs/demo-script.md](./docs/demo-script.md)，截图清单见 [docs/screenshot-checklist.md](./docs/screenshot-checklist.md)，改造进度对照见 [docs/todo-checklist.md](./docs/todo-checklist.md)。
+### 答辩前一键准备（Windows 推荐）
+
+双击项目根目录 **`pre-defense.bat`**：
+
+1. 重置并灌入完整演示数据（`reset_demo_db --full`）
+2. 自动启动后端 + 前端并打开浏览器
+
+仅重置数据库、不启动服务时，可运行 `reset-demo.bat`。命令行等价：
+
+```bash
+cd backend && python -m scripts.reset_demo_db --full
+```
+
+答辩演示顺序见 [docs/demo-script.md](./docs/demo-script.md)，演示数据说明见 [docs/demo-data.md](./docs/demo-data.md)，截图清单见 [docs/screenshot-checklist.md](./docs/screenshot-checklist.md)，改造进度对照见 [docs/todo-checklist.md](./docs/todo-checklist.md)。
 
 ### 演示账号（密码均为 `123456`）
 
