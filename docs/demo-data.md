@@ -14,15 +14,16 @@
 Windows 答辩前一键（项目根目录，**推荐**）：
 
 ```bat
-pre-defense.bat
+lakesea.bat defense        REM SQLite 开发环境
+lakesea.bat defense-dm8    REM 达梦答辩环境
 ```
 
-等价于 `reset_demo_db --full` + 启动后端/前端/浏览器。
+等价于 `reset_demo_db --full` + 启动后端/前端/浏览器。亦可用 `pre-defense.bat`（转发至 `lakesea.bat defense`）。
 
 仅重置数据库：
 
 ```bat
-reset-demo.bat
+lakesea.bat reset
 ```
 
 ## 演示数据清单

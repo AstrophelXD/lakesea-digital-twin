@@ -243,21 +243,18 @@ lakesea-digital-twin/
 
 ## 🚀 快速启动
 
-### Windows 一键启动（推荐）
+### Windows 一键脚本（推荐）
 
-**首次安装**（pip 默认走本地代理 `127.0.0.1:7897`，请先开启 Clash 等代理）：
-
-```bat
-setup.bat
-```
-
-**日常启动**：
+项目根目录 **`lakesea.bat`** 汇总常用操作（`setup` / `run` / `defense` / `defense-dm8` / `reset` / `test` / `smoke`）。双击或带参数运行，例如：
 
 ```bat
-run-all.bat
+lakesea.bat setup          REM 首次安装（SQLite，pip 代理 127.0.0.1:7897）
+lakesea.bat run            REM 日常启动
+lakesea.bat defense        REM 答辩前：重置演示数据 + 启服
+lakesea.bat defense-dm8    REM 达梦答辩前（见 docs/dm8-deployment.md）
 ```
 
-将自动打开两个终端窗口（后端 + 前端）并启动浏览器。
+旧脚本 `setup.bat`、`run-all.bat`、`pre-defense.bat` 等已转发到 `lakesea.bat`。
 
 ### 后端
 
