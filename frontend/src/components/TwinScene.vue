@@ -61,6 +61,29 @@ function init() {
   border.position.set(POOL_W / 2, POOL_H / 2, 0.1)
   scene.add(border)
 
+  // 水池网格
+  const gridHelper = new THREE.GridHelper(POOL_W, 20, 0x7dd3fc, 0x0e7490)
+  gridHelper.rotation.x = Math.PI / 2
+  gridHelper.position.set(POOL_W / 2, POOL_H / 2, 0.05)
+  gridHelper.material.transparent = true
+  ;(gridHelper.material as THREE.Material).opacity = 0.35
+  scene.add(gridHelper)
+
+  // 设备点位
+  const markers = [
+    { x: 2, y: POOL_H - 2, color: 0xffffff, label: 'cam' },
+    { x: POOL_W - 2, y: 2, color: 0x38bdf8, label: 'wave' },
+    { x: POOL_W / 2, y: 1, color: 0xa78bfa, label: 'imu' },
+  ]
+  for (const m of markers) {
+    const dot = new THREE.Mesh(
+      new THREE.CircleGeometry(0.5, 16),
+      new THREE.MeshBasicMaterial({ color: m.color }),
+    )
+    dot.position.set(m.x, m.y, 0.15)
+    scene.add(dot)
+  }
+
   const shipGeo = new THREE.ConeGeometry(0.8, 2, 3)
   shipMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 })
   shipMesh = new THREE.Mesh(shipGeo, shipMat)
@@ -135,8 +158,9 @@ onUnmounted(() => {
 <style scoped>
 .twin-scene {
   width: 100%;
-  height: 360px;
-  border-radius: 8px;
+  height: 100%;
+  min-height: 240px;
+  border-radius: 0;
   overflow: hidden;
 }
 </style>

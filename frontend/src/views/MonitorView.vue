@@ -17,13 +17,13 @@ import { listAlarms, type AlarmRecord } from '@/api/alarm'
 import { getSystemHealth, type SystemHealthStatus } from '@/api/health'
 import { startCvTracking, stopCvTracking, type CvTrackResult } from '@/api/cv'
 import { startVideoRecording, stopVideoRecording } from '@/api/video'
-import TwinScene from '@/components/TwinScene.vue'
+import type { DeviceInfo, DeviceStatusEvent } from '@/api/device'
 import SensorChart from '@/components/SensorChart.vue'
-import AlarmList from '@/components/AlarmList.vue'
-import VideoPanel from '@/components/VideoPanel.vue'
-import ControlPanel from '@/components/ControlPanel.vue'
-import type { DeviceStatusEvent } from '@/api/device'
-import SystemStatusBar from '@/components/SystemStatusBar.vue'
+import MonitorStatusBar from '@/components/monitor/MonitorStatusBar.vue'
+import DeviceControlPanel from '@/components/monitor/DeviceControlPanel.vue'
+import VideoTwinPanel from '@/components/monitor/VideoTwinPanel.vue'
+import RealtimeStatusPanel from '@/components/monitor/RealtimeStatusPanel.vue'
+import '@/components/monitor/monitor-theme.css'
 
 const route = useRoute()
 const experiments = ref<ExperimentTask[]>([])
@@ -41,17 +41,20 @@ const cvTrack = ref<CvTrackResult | null>(null)
 const cvEnabled = ref(false)
 const wsLatencyMs = ref<number | null>(null)
 const useCvPosition = ref(true)
-const controlPanelRef = ref<InstanceType<typeof ControlPanel> | null>(null)
+const controlPanelRef = ref<InstanceType<typeof DeviceControlPanel> | null>(null)
+const deviceList = ref<DeviceInfo[]>([])
 
 const isMqttMode = computed(() => mqttInfo.value?.enabled === true)
 const dataSourceLabel = computed(() =>
-  isMqttMode.value ? 'MQTT 接入' : 'WebSocket 内置模拟',
+  isMqttMode.value ? 'MQTT 接入' : 'WebSocket 模拟',
 )
 
-let ws: WebSocket | null = null
-let reconnectTimer: ReturnType<typeof setTimeout> | null = null
-let healthTimer: ReturnType<typeof setInterval> | null = null
-const maxHistory = 60
+const selectedExperiment = computed(() =>
+  experiments.value.find((e) => e.id === selectedId.value) ?? null,
+)
+
+const onlineDeviceCount = computed(() => deviceList.value.filter((d) => d.online).length)
+const totalDeviceCount = computed(() => deviceList.value.length || 6)
 
 const position = computed(() => {
   if (useCvPosition.value && cvTrack.value) {
@@ -61,19 +64,13 @@ const position = computed(() => {
 })
 
 const heading = computed(() => latestFrame.value?.heading ?? 0)
+const speed = computed(() => latestFrame.value?.speed ?? null)
+const battery = computed(() => latestFrame.value?.battery ?? null)
 
-const metrics = computed(() => {
-  const f = latestFrame.value
-  if (!f) return []
-  return [
-    { label: '速度', value: `${f.speed} m/s` },
-    { label: '航向', value: `${f.heading}°` },
-    { label: '横摇', value: `${f.roll}°` },
-    { label: '纵摇', value: `${f.pitch}°` },
-    { label: '电量', value: `${f.battery}%` },
-    { label: '阻力', value: `${f.resistance} N` },
-  ]
-})
+let ws: WebSocket | null = null
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let healthTimer: ReturnType<typeof setInterval> | null = null
+const maxHistory = 60
 
 function calcLatency(frame: MonitorFrame) {
   const ts = frame.serverTime || frame.timestamp
@@ -81,6 +78,10 @@ function calcLatency(frame: MonitorFrame) {
   if (!Number.isNaN(serverMs)) {
     wsLatencyMs.value = Math.max(0, Date.now() - serverMs)
   }
+}
+
+function onDevicesLoaded(devices: DeviceInfo[]) {
+  deviceList.value = devices
 }
 
 async function loadMqttInfo() {
@@ -242,24 +243,34 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="monitor-page">
-    <div class="page-title">数字孪生监控 · 智能中控台</div>
+  <div class="monitor-console">
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-title">
+        <span class="title-icon">🌊</span>
+        湖海试验场 · 智能中控台
+      </div>
+      <div class="page-sub">数字孪生监控 / 视频感知 / 设备控制</div>
+    </div>
 
-    <SystemStatusBar
+    <!-- 试验运行状态栏 -->
+    <MonitorStatusBar
       :ws-status="wsStatus"
       :monitor-running="monitorRunning"
       :health="systemHealth"
       :ws-latency-ms="wsLatencyMs"
-      :mqtt-latency-ms="null"
       :data-source-label="dataSourceLabel"
+      :experiment="selectedExperiment"
     />
 
-    <el-card shadow="never" class="toolbar-card">
-      <div class="toolbar">
+    <!-- 操作工具栏 -->
+    <div class="console-card action-bar">
+      <div class="action-left">
         <el-select
           v-model="selectedId"
           placeholder="选择试验任务"
-          style="width: 280px"
+          size="default"
+          class="exp-select"
           @change="onExperimentChange"
         >
           <el-option
@@ -269,27 +280,34 @@ onUnmounted(() => {
             :value="e.id"
           />
         </el-select>
-        <el-button type="success" :disabled="!selectedId" @click="onStart">
-          {{ isMqttMode ? '开始监控' : '启动中控台' }}
+        <el-button type="primary" :disabled="!selectedId" @click="onStart">
+          {{ isMqttMode ? '开始监控' : '▶ 启动中控台' }}
         </el-button>
-        <el-button :disabled="!selectedId" @click="onStop">暂停 / 结束</el-button>
+        <el-button :disabled="!selectedId" @click="onStop">⏹ 暂停</el-button>
         <el-switch
           v-model="useCvPosition"
-          active-text="CV 驱动孪生"
-          inactive-text="传感器驱动"
-          style="margin-left: 8px"
+          inline-prompt
+          active-text="CV联动"
+          inactive-text="传感器"
+          size="small"
         />
-        <el-divider direction="vertical" />
-        <el-button size="small" :disabled="!monitorRunning" @click="onDemoAlarm('LOW_BATTERY')">低电量</el-button>
-        <el-button size="small" :disabled="!monitorRunning" @click="onDemoAlarm('OUT_OF_BOUNDARY')">越界</el-button>
-        <el-button size="small" :disabled="!monitorRunning" @click="onDemoAlarm('DATA_SPIKE')">数据突变</el-button>
       </div>
-    </el-card>
+      <div class="action-right">
+        <span class="demo-label">演示告警</span>
+        <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('LOW_BATTERY')">低电量</el-button>
+        <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('OUT_OF_BOUNDARY')">越界</el-button>
+        <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('DATA_SPIKE')">数据突变</el-button>
+      </div>
+    </div>
 
-    <el-row :gutter="12" class="main-grid">
-      <el-col :span="5">
-        <el-card shadow="never" class="panel">
-          <template #header>试验任务与设备控制</template>
+    <!-- 三栏主区域 -->
+    <div class="main-layout">
+      <!-- 左：任务与控制台 -->
+      <div class="col-left console-card">
+        <div class="console-card-header">
+          <span><i class="dot" />任务与控制台</span>
+        </div>
+        <div class="console-card-body">
           <el-alert
             v-if="!experiments.length"
             title="请先在试验任务页启动试验"
@@ -298,166 +316,153 @@ onUnmounted(() => {
             show-icon
             class="side-tip"
           />
-          <ControlPanel
+          <DeviceControlPanel
             ref="controlPanelRef"
             :experiment-id="selectedId"
             :monitor-running="monitorRunning"
             :mqtt-enabled="isMqttMode"
+            :battery="battery"
             @command-issued="loadSystemHealth"
+            @devices-loaded="onDevicesLoaded"
           />
-        </el-card>
-      </el-col>
+        </div>
+      </div>
 
-      <el-col :span="11">
-        <el-card shadow="never" class="panel center-panel">
-          <template #header>视频感知 + 数字孪生联动</template>
-          <VideoPanel
+      <!-- 中：视频 + 孪生 -->
+      <div class="col-center console-card">
+        <div class="console-card-header">
+          <span><i class="dot" />视频感知 + 数字孪生联动</span>
+        </div>
+        <div class="console-card-body center-body">
+          <VideoTwinPanel
             :experiment-id="selectedId"
             :cv-track="cvTrack"
             :running="monitorRunning"
+            :position="position"
+            :heading="heading"
+            :tracks="tracks"
+            :highlight="shipAlarm"
+            :speed="speed ?? undefined"
+            :battery="battery ?? undefined"
           />
-          <div class="twin-section">
-            <div class="section-label">数字孪生水池场景</div>
-            <TwinScene
-              :position="position"
-              :heading="heading"
-              :tracks="tracks"
-              :highlight="shipAlarm"
-            />
-          </div>
-        </el-card>
-      </el-col>
+        </div>
+      </div>
 
-      <el-col :span="8">
-        <el-card shadow="never" class="panel">
-          <template #header>实时数据 · 告警 · 系统状态</template>
-          <el-row :gutter="8">
-            <el-col v-for="m in metrics" :key="m.label" :span="12">
-              <div class="metric-box">
-                <div class="metric-label">{{ m.label }}</div>
-                <div class="metric-value">{{ m.value }}</div>
-              </div>
-            </el-col>
-          </el-row>
-          <div v-if="systemHealth" class="health-cards">
-            <div class="health-item">
-              <span>后端服务</span>
-              <el-tag size="small" :type="systemHealth.backend === 'UP' ? 'success' : 'danger'">
-                {{ systemHealth.backend === 'UP' ? '正常' : '异常' }}
-              </el-tag>
-            </div>
-            <div class="health-item">
-              <span>数据库</span>
-              <el-tag size="small" :type="systemHealth.database === 'UP' ? 'success' : 'danger'">
-                {{ systemHealth.database === 'UP' ? '正常' : '异常' }}
-              </el-tag>
-            </div>
-            <div class="health-item">
-              <span>MQTT Broker</span>
-              <el-tag size="small" :type="systemHealth.mqttBroker === 'UP' ? 'success' : 'info'">
-                {{ systemHealth.mqttBroker }}
-              </el-tag>
-            </div>
-            <div class="health-item">
-              <span>视频流</span>
-              <el-tag size="small" type="success">{{ systemHealth.videoStream }}</el-tag>
-            </div>
-            <div class="health-item">
-              <span>边缘端</span>
-              <el-tag size="small" :type="systemHealth.edgeAgent === 'UP' ? 'success' : 'warning'">
-                {{ systemHealth.edgeAgent }}
-              </el-tag>
-            </div>
-          </div>
-          <div class="alarm-section">
-            <div class="alarm-title">实时告警</div>
-            <AlarmList :alarms="recentAlarms" compact />
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+      <!-- 右：数据与告警 -->
+      <div class="col-right console-card">
+        <div class="console-card-header">
+          <span><i class="dot" />数据与告警</span>
+        </div>
+        <div class="console-card-body">
+          <RealtimeStatusPanel
+            :latest-frame="latestFrame"
+            :alarms="recentAlarms"
+            :health="systemHealth"
+            :online-device-count="onlineDeviceCount"
+            :total-device-count="totalDeviceCount"
+            :monitor-running="monitorRunning"
+          />
+        </div>
+      </div>
+    </div>
 
-    <el-card shadow="never" class="chart-card">
-      <template #header>速度 / 姿态 / 阻力 / 电量曲线 · 轨迹回放</template>
-      <SensorChart :frames="frameHistory" />
-    </el-card>
+    <!-- 底部曲线 -->
+    <div class="console-card chart-section">
+      <div class="console-card-header">
+        <span><i class="dot" />实时曲线 · 速度 / 姿态 / 阻力 / 电量</span>
+        <span class="chart-hint">{{ frameHistory.length }} 采样点</span>
+      </div>
+      <div class="console-card-body chart-body">
+        <SensorChart :frames="frameHistory" />
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.monitor-console {
+  min-height: 100%;
+  padding-bottom: 16px;
+}
+.page-header {
+  margin-bottom: 12px;
+}
 .page-title {
   font-size: 18px;
   font-weight: 700;
   color: #0f766e;
-  margin-bottom: 12px;
-}
-.toolbar {
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.title-icon {
+  font-size: 20px;
+}
+.page-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
-  align-items: center;
-}
-.main-grid {
-  margin-top: 12px;
-}
-.panel {
-  min-height: 520px;
-}
-.center-panel :deep(.el-card__body) {
-  padding: 10px;
-}
-.twin-section {
-  margin-top: 10px;
-}
-.section-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 6px;
-}
-.side-tip {
+  padding: 10px 14px;
   margin-bottom: 12px;
 }
-.metric-box {
-  background: #f3f4f6;
-  border-radius: 8px;
-  padding: 10px;
-  text-align: center;
-  margin-bottom: 8px;
-}
-.metric-label {
-  font-size: 12px;
-  color: #6b7280;
-}
-.metric-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #0f766e;
-}
-.health-cards {
-  margin: 12px 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-.health-item {
+.action-left,
+.action-right {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 12px;
-  padding: 6px 8px;
-  background: #f8fafc;
-  border-radius: 6px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-.alarm-section {
+.exp-select {
+  width: 260px;
+}
+.demo-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-right: 4px;
+}
+.main-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  gap: 12px;
+  align-items: start;
+}
+.col-left,
+.col-center,
+.col-right {
+  min-height: 560px;
+}
+.center-body {
+  padding: 10px !important;
+}
+.side-tip {
+  margin-bottom: 10px;
+}
+.chart-section {
   margin-top: 12px;
 }
-.alarm-title {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 8px;
+.chart-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 400;
 }
-.chart-card {
-  margin-top: 12px;
+.chart-body {
+  padding: 8px 12px 12px !important;
+}
+@media (max-width: 1200px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+  .col-left,
+  .col-center,
+  .col-right {
+    min-height: auto;
+  }
 }
 </style>

@@ -1,0 +1,63 @@
+/* 湖海试验场智能中控台 — 共享视觉变量 */
+.monitor-console {
+  --mc-bg: #f0f4f8;
+  --mc-card: #ffffff;
+  --mc-border: #e2e8f0;
+  --mc-teal: #0f766e;
+  --mc-teal-light: #14b8a6;
+  --mc-lake: #0284c7;
+  --mc-lake-dark: #0c4a6e;
+  --mc-text: #1e293b;
+  --mc-muted: #64748b;
+  --mc-radius: 10px;
+  --mc-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.monitor-console .console-card {
+  background: var(--mc-card);
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius);
+  box-shadow: var(--mc-shadow);
+}
+
+.monitor-console .console-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--mc-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mc-text);
+}
+
+.monitor-console .console-card-header .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mc-teal-light);
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.monitor-console .console-card-body {
+  padding: 12px 14px;
+}
+
+.monitor-console .section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mc-muted);
+  margin-bottom: 8px;
+}
+
+.monitor-console .console-btn-group {
+  display: grid;
+  gap: 6px;
+}
+
+.monitor-console .console-btn-group.cols-2 {
+  grid-template-columns: 1fr 1fr;
+}
