@@ -16,6 +16,7 @@ const props = defineProps<{
   monitorRunning?: boolean
   mqttEnabled?: boolean
   battery?: number | null
+  compact?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -161,9 +162,9 @@ onUnmounted(stopPolling)
 <template>
   <div class="device-panel">
     <div class="section-label">设备状态</div>
-    <div class="device-cards">
+    <div class="device-cards" :class="{ compact: compact }">
       <div
-        v-for="d in devices.slice(0, 4)"
+        v-for="d in devices.slice(0, compact ? 4 : 6)"
         :key="d.deviceId"
         class="device-card"
         :class="{ active: selectedDevice === d.deviceId, offline: !d.online }"
@@ -290,6 +291,20 @@ onUnmounted(stopPolling)
   max-height: 160px;
   overflow-y: auto;
 }
+.device-cards.compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-height: none;
+  overflow: visible;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.device-cards.compact .device-card {
+  padding: 6px 8px;
+}
+.device-cards.compact .dc-name {
+  font-size: 11px;
+}
 .device-card {
   padding: 8px 10px;
   border: 1px solid #e2e8f0;
@@ -341,8 +356,8 @@ onUnmounted(stopPolling)
   margin-top: 4px;
 }
 .control-block {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #f1f5f9;
 }
 .control-block.safety {

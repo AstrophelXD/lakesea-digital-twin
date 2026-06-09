@@ -12,6 +12,7 @@ const props = defineProps<{
   onlineDeviceCount: number
   totalDeviceCount: number
   monitorRunning: boolean
+  compact?: boolean
 }>()
 
 const speed = computed(() => props.latestFrame?.speed ?? null)
@@ -82,7 +83,7 @@ const systemItems = computed(() => {
 </script>
 
 <template>
-  <div class="realtime-panel">
+  <div class="realtime-panel" :class="{ compact }">
     <!-- KPI 卡片 -->
     <div class="kpi-grid">
       <div
@@ -149,8 +150,25 @@ const systemItems = computed(() => {
 .realtime-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   font-size: 13px;
+}
+.realtime-panel.compact .kpi-grid {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+.realtime-panel.compact .kpi-card {
+  padding: 7px 8px;
+}
+.realtime-panel.compact .kpi-value {
+  font-size: 16px;
+}
+.realtime-panel.compact .alarm-block,
+.realtime-panel.compact .system-block {
+  padding: 8px 10px;
+}
+.realtime-panel.compact .alarm-list {
+  max-height: 120px;
 }
 .kpi-grid {
   display: grid;

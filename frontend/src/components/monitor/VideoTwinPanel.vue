@@ -309,8 +309,8 @@ onUnmounted(() => cancelAnimationFrame(animId))
   position: relative;
 }
 .video-viewport {
-  aspect-ratio: 16 / 7;
-  max-height: 280px;
+  aspect-ratio: 16 / 9;
+  min-height: 220px;
   background: #0a3d5c;
 }
 .viewport-el {
@@ -396,10 +396,10 @@ onUnmounted(() => cancelAnimationFrame(animId))
 }
 .twin-viewport {
   position: relative;
-  min-height: 240px;
+  min-height: 280px;
 }
 .twin-viewport :deep(.twin-scene) {
-  height: 240px;
+  height: 280px;
   border-radius: 0;
 }
 .twin-hud {

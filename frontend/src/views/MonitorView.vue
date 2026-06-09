@@ -244,137 +244,134 @@ onUnmounted(() => {
 
 <template>
   <div class="monitor-console">
-    <!-- 页头 -->
-    <div class="page-header">
-      <div class="page-title">
-        <span class="title-icon">🌊</span>
-        湖海试验场 · 智能中控台
+    <!-- 顶栏：标题 + 状态 -->
+    <div class="top-area">
+      <div class="page-header">
+        <h1 class="page-title">湖海试验场 · 智能中控台</h1>
+        <span class="page-sub">数字孪生 / 视频感知 / 设备控制</span>
       </div>
-      <div class="page-sub">数字孪生监控 / 视频感知 / 设备控制</div>
+      <MonitorStatusBar
+        :ws-status="wsStatus"
+        :monitor-running="monitorRunning"
+        :health="systemHealth"
+        :ws-latency-ms="wsLatencyMs"
+        :data-source-label="dataSourceLabel"
+        :experiment="selectedExperiment"
+      />
     </div>
 
-    <!-- 试验运行状态栏 -->
-    <MonitorStatusBar
-      :ws-status="wsStatus"
-      :monitor-running="monitorRunning"
-      :health="systemHealth"
-      :ws-latency-ms="wsLatencyMs"
-      :data-source-label="dataSourceLabel"
-      :experiment="selectedExperiment"
-    />
-
-    <!-- 操作工具栏 -->
+    <!-- 操作条 -->
     <div class="console-card action-bar">
-      <div class="action-left">
-        <el-select
-          v-model="selectedId"
-          placeholder="选择试验任务"
-          size="default"
-          class="exp-select"
-          @change="onExperimentChange"
-        >
-          <el-option
-            v-for="e in experiments"
-            :key="e.id"
-            :label="`${e.taskNo} - ${e.expName}`"
-            :value="e.id"
-          />
-        </el-select>
-        <el-button type="primary" :disabled="!selectedId" @click="onStart">
-          {{ isMqttMode ? '开始监控' : '▶ 启动中控台' }}
-        </el-button>
-        <el-button :disabled="!selectedId" @click="onStop">⏹ 暂停</el-button>
-        <el-switch
-          v-model="useCvPosition"
-          inline-prompt
-          active-text="CV联动"
-          inactive-text="传感器"
-          size="small"
+      <el-select
+        v-model="selectedId"
+        placeholder="选择试验任务"
+        size="default"
+        class="exp-select"
+        @change="onExperimentChange"
+      >
+        <el-option
+          v-for="e in experiments"
+          :key="e.id"
+          :label="`${e.taskNo} - ${e.expName}`"
+          :value="e.id"
         />
-      </div>
-      <div class="action-right">
-        <span class="demo-label">演示告警</span>
-        <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('LOW_BATTERY')">低电量</el-button>
-        <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('OUT_OF_BOUNDARY')">越界</el-button>
-        <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('DATA_SPIKE')">数据突变</el-button>
-      </div>
+      </el-select>
+      <el-button type="primary" :disabled="!selectedId" @click="onStart">
+        {{ isMqttMode ? '开始监控' : '▶ 启动' }}
+      </el-button>
+      <el-button :disabled="!selectedId" @click="onStop">⏹ 暂停</el-button>
+      <el-switch
+        v-model="useCvPosition"
+        inline-prompt
+        active-text="CV"
+        inactive-text="传感器"
+        size="small"
+      />
+      <div class="action-divider" />
+      <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('LOW_BATTERY')">低电量</el-button>
+      <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('OUT_OF_BOUNDARY')">越界</el-button>
+      <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('DATA_SPIKE')">突变</el-button>
     </div>
 
-    <!-- 三栏主区域 -->
-    <div class="main-layout">
-      <!-- 左：任务与控制台 -->
-      <div class="col-left console-card">
-        <div class="console-card-header">
-          <span><i class="dot" />任务与控制台</span>
+    <!-- 两栏主体：左视觉屏 / 右侧栏 -->
+    <div class="console-body">
+      <!-- 左：视频 + 孪生 + 曲线 -->
+      <div class="col-visual">
+        <div class="console-card visual-card">
+          <div class="console-card-header">
+            <span><i class="dot" />视频感知 + 数字孪生</span>
+          </div>
+          <div class="console-card-body visual-body">
+            <VideoTwinPanel
+              :experiment-id="selectedId"
+              :cv-track="cvTrack"
+              :running="monitorRunning"
+              :position="position"
+              :heading="heading"
+              :tracks="tracks"
+              :highlight="shipAlarm"
+              :speed="speed ?? undefined"
+              :battery="battery ?? undefined"
+            />
+          </div>
         </div>
-        <div class="console-card-body">
-          <el-alert
-            v-if="!experiments.length"
-            title="请先在试验任务页启动试验"
-            type="info"
-            :closable="false"
-            show-icon
-            class="side-tip"
-          />
-          <DeviceControlPanel
-            ref="controlPanelRef"
-            :experiment-id="selectedId"
-            :monitor-running="monitorRunning"
-            :mqtt-enabled="isMqttMode"
-            :battery="battery"
-            @command-issued="loadSystemHealth"
-            @devices-loaded="onDevicesLoaded"
-          />
+
+        <div class="console-card chart-card">
+          <div class="console-card-header">
+            <span><i class="dot" />实时曲线</span>
+            <span class="chart-hint">{{ frameHistory.length }} 点</span>
+          </div>
+          <div class="console-card-body chart-body">
+            <SensorChart :frames="frameHistory" />
+          </div>
         </div>
       </div>
 
-      <!-- 中：视频 + 孪生 -->
-      <div class="col-center console-card">
-        <div class="console-card-header">
-          <span><i class="dot" />视频感知 + 数字孪生联动</span>
+      <!-- 右：指标 + 控制 -->
+      <aside class="col-side">
+        <div class="console-card side-card">
+          <div class="console-card-header">
+            <span><i class="dot" />运行指标与告警</span>
+          </div>
+          <div class="console-card-body">
+            <RealtimeStatusPanel
+              :latest-frame="latestFrame"
+              :alarms="recentAlarms"
+              :health="systemHealth"
+              :online-device-count="onlineDeviceCount"
+              :total-device-count="totalDeviceCount"
+              :monitor-running="monitorRunning"
+              compact
+            />
+          </div>
         </div>
-        <div class="console-card-body center-body">
-          <VideoTwinPanel
-            :experiment-id="selectedId"
-            :cv-track="cvTrack"
-            :running="monitorRunning"
-            :position="position"
-            :heading="heading"
-            :tracks="tracks"
-            :highlight="shipAlarm"
-            :speed="speed ?? undefined"
-            :battery="battery ?? undefined"
-          />
-        </div>
-      </div>
 
-      <!-- 右：数据与告警 -->
-      <div class="col-right console-card">
-        <div class="console-card-header">
-          <span><i class="dot" />数据与告警</span>
+        <div class="console-card side-card">
+          <div class="console-card-header">
+            <span><i class="dot" />设备控制台</span>
+          </div>
+          <div class="console-card-body">
+            <el-alert
+              v-if="!experiments.length"
+              title="请先在试验任务页启动试验"
+              type="info"
+              :closable="false"
+              show-icon
+              class="side-tip"
+            />
+            <DeviceControlPanel
+              ref="controlPanelRef"
+              :experiment-id="selectedId"
+              :monitor-running="monitorRunning"
+              :mqtt-enabled="isMqttMode"
+              :battery="battery"
+              compact
+              @command-issued="loadSystemHealth"
+              @devices-loaded="onDevicesLoaded"
+            />
+          </div>
         </div>
-        <div class="console-card-body">
-          <RealtimeStatusPanel
-            :latest-frame="latestFrame"
-            :alarms="recentAlarms"
-            :health="systemHealth"
-            :online-device-count="onlineDeviceCount"
-            :total-device-count="totalDeviceCount"
-            :monitor-running="monitorRunning"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- 底部曲线 -->
-    <div class="console-card chart-section">
-      <div class="console-card-header">
-        <span><i class="dot" />实时曲线 · 速度 / 姿态 / 阻力 / 电量</span>
-        <span class="chart-hint">{{ frameHistory.length }} 采样点</span>
-      </div>
-      <div class="console-card-body chart-body">
-        <SensorChart :frames="frameHistory" />
-      </div>
+      </aside>
     </div>
   </div>
 </template>
@@ -382,87 +379,93 @@ onUnmounted(() => {
 <style scoped>
 .monitor-console {
   min-height: 100%;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
+}
+.top-area {
+  margin-bottom: 10px;
 }
 .page-header {
-  margin-bottom: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 .page-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: #0f766e;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.title-icon {
-  font-size: 20px;
+  margin: 0;
 }
 .page-sub {
   font-size: 12px;
-  color: #64748b;
-  margin-top: 2px;
+  color: #94a3b8;
 }
+.top-area :deep(.status-bar) {
+  margin-bottom: 0;
+}
+
 .action-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-}
-.action-left,
-.action-right {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-}
-.exp-select {
-  width: 260px;
-}
-.demo-label {
-  font-size: 11px;
-  color: #94a3b8;
-  margin-right: 4px;
-}
-.main-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr 300px;
-  gap: 12px;
-  align-items: start;
-}
-.col-left,
-.col-center,
-.col-right {
-  min-height: 560px;
-}
-.center-body {
-  padding: 10px !important;
-}
-.side-tip {
+  padding: 8px 12px;
   margin-bottom: 10px;
 }
-.chart-section {
-  margin-top: 12px;
+.exp-select {
+  width: 240px;
 }
+.action-divider {
+  width: 1px;
+  height: 20px;
+  background: #e2e8f0;
+  margin: 0 4px;
+}
+
+/* 两栏布局：左宽右窄，始终并排（内容区约 900px+ 即可） */
+.console-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 10px;
+  align-items: start;
+}
+
+.col-visual {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.visual-body {
+  padding: 8px !important;
+}
+
+.chart-body {
+  padding: 4px 10px 10px !important;
+}
+
 .chart-hint {
   font-size: 11px;
   color: #94a3b8;
   font-weight: 400;
 }
-.chart-body {
-  padding: 8px 12px 12px !important;
+
+.side-tip {
+  margin-bottom: 8px;
 }
-@media (max-width: 1200px) {
-  .main-layout {
+
+/* 极窄屏才单列，且视觉屏在上 */
+@media (max-width: 860px) {
+  .console-body {
     grid-template-columns: 1fr;
-  }
-  .col-left,
-  .col-center,
-  .col-right {
-    min-height: auto;
   }
 }
 </style>

@@ -68,9 +68,10 @@ async function handleLogout() {
         :default-active="activeMenu"
         :collapse="collapsed"
         router
-        background-color="#0f766e"
-        text-color="#e6fffa"
-        active-text-color="#ffffff"
+        class="side-menu"
+        background-color="#dbeafe"
+        text-color="#334155"
+        active-text-color="#1d4ed8"
       >
         <el-menu-item
           v-for="item in visibleMenus"
@@ -83,7 +84,7 @@ async function handleLogout() {
       </el-menu>
     </el-aside>
 
-    <el-container>
+    <el-container class="main-wrap" :class="{ collapsed }">
       <el-header class="layout-header">
         <div class="header-left">
           <el-button text @click="collapsed = !collapsed">
@@ -124,8 +125,27 @@ async function handleLogout() {
 }
 
 .layout-aside {
-  background: #0f766e;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 200;
+  height: 100vh;
+  background: #dbeafe;
   transition: width 0.2s;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.main-wrap {
+  margin-left: 220px;
+  width: calc(100% - 220px);
+  min-height: 100vh;
+  transition: margin-left 0.2s, width 0.2s;
+}
+
+.main-wrap.collapsed {
+  margin-left: 64px;
+  width: calc(100% - 64px);
 }
 
 .logo {
@@ -133,13 +153,36 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: #1e40af;
   font-weight: 700;
   font-size: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid #bfdbfe;
+  background: #dbeafe;
+}
+
+.side-menu {
+  border-right: none;
+}
+
+.layout-aside :deep(.el-menu) {
+  background-color: #dbeafe !important;
+  border-right: none;
+}
+
+.layout-aside :deep(.el-menu-item:hover) {
+  background-color: #bfdbfe !important;
+}
+
+.layout-aside :deep(.el-menu-item.is-active) {
+  background-color: #93c5fd !important;
+  color: #1d4ed8 !important;
+  font-weight: 600;
 }
 
 .layout-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
