@@ -196,7 +196,7 @@ P3  代码质量与报告支撑
 
 | 任务 | 状态 | 说明 |
 |------|------|------|
-| `pytest` 登录/预约/主从表/冲突/审批/告警/AI 等 | [~] | `backend/tests/` 已有基础用例，需联网 `pip install pytest` |
+| `pytest` 登录/预约/主从表/冲突/审批/告警/AI 等 | [x] | `backend/tests/` 16 项用例，见 `test_auth/reservation/experiment_alarm_ai` |
 | `scripts/smoke_test.py` | [x] | 需后端已启动 |
 | `npm run build` 通过 | [x] | 已验证 |
 | README 写明三条测试命令 | [x] | |
@@ -267,6 +267,6 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | P0 | 17 | 0 | 1（实机验收） |
 | P1 | 38 | 0 | 0 |
 | P2 | 17 | 0 | 0 |
-| P3 | 5 | 1 | 0 |
+| P3 | 6 | 0 | 0 |
 
 > 勾选方式：直接在本文档把 `[ ]` 改成 `[x]`，或用 IDE 任务插件跟踪。

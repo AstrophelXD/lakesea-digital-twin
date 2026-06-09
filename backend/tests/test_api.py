@@ -1,30 +1,21 @@
-def _auth(token: str) -> dict:
-    return {"Authorization": f"Bearer {token}"}
-
-
-def test_login(client):
-    resp = client.post("/api/auth/login", json={"username": "admin", "password": "123456"})
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["code"] == 200
-    assert body["data"]["token"]
+from tests.helpers import api_ok, auth
 
 
 def test_db_health(client):
-    resp = client.get("/api/health/db")
-    assert resp.status_code == 200
-    data = resp.json()["data"]
+    data = api_ok(client.get("/api/health/db"))
     assert data["connected"] is True
-    assert "databaseType" in data
+    assert data["databaseType"] == "SQLite"
 
 
 def test_dashboard_summary(client, admin_token):
-    resp = client.get("/api/dashboard/summary", headers=_auth(admin_token))
-    assert resp.status_code == 200
-    assert resp.json()["code"] == 200
+    api_ok(client.get("/api/dashboard/summary", headers=auth(admin_token)))
 
 
-def test_list_users_admin_only(client, admin_token):
-    resp = client.get("/api/users", headers=_auth(admin_token))
-    assert resp.status_code == 200
-    assert resp.json()["data"]["total"] >= 2
+def test_list_users_admin(client, admin_token):
+    data = api_ok(client.get("/api/users", headers=auth(admin_token)))
+    assert data["total"] >= 4
+
+
+def test_list_resources(client, admin_token):
+    data = api_ok(client.get("/api/resources", headers=auth(admin_token)))
+    assert data["total"] >= 2

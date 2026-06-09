@@ -42,7 +42,7 @@ from app.services.resource_service import ResourceService
 
 
 def _gen_no(prefix: str) -> str:
-    return f"{prefix}{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    return f"{prefix}{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
 
 
 class ReservationService:
