@@ -6,7 +6,9 @@
 cd backend
 python -m venv .venv
 .venv\Scripts\activate          # Windows
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip-install.bat
+:: 或: pip install -r requirements.txt --proxy http://127.0.0.1:7897
+:: 测试（可选）: pip install -r requirements-dev.txt --proxy http://127.0.0.1:7897
 copy .env.example .env
 python -m scripts.seed_db
 uvicorn app.main:app --reload

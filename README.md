@@ -236,17 +236,36 @@ lakesea-digital-twin/
 
 ## 🚀 快速启动
 
+### Windows 一键启动（推荐）
+
+**首次安装**（pip 默认走本地代理 `127.0.0.1:7897`，请先开启 Clash 等代理）：
+
+```bat
+setup.bat
+```
+
+**日常启动**：
+
+```bat
+run-all.bat
+```
+
+将自动打开两个终端窗口（后端 + 前端）并启动浏览器。
+
 ### 后端
 
-```bash
+```bat
 cd backend
 python -m venv .venv
-.venv\Scripts\activate          # Windows
-pip install -r requirements.txt
+.venv\Scripts\activate
+pip-install.bat
 copy .env.example .env
 python -m scripts.seed_db
 uvicorn app.main:app --reload
 ```
+
+`pip-install.bat` 会优先走代理 `127.0.0.1:7897`，失败则自动改用清华镜像。  
+`requirements-dev.txt` 仅含 pytest，装不上也不影响运行项目。
 
 ### 前端
 
