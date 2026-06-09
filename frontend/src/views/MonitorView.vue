@@ -244,12 +244,8 @@ onUnmounted(() => {
 
 <template>
   <div class="monitor-console">
-    <!-- 顶栏：标题 + 状态 -->
+    <!-- 顶栏：状态（标题已在 layout header 展示，此处仅保留运行状态） -->
     <div class="top-area">
-      <div class="page-header">
-        <h1 class="page-title">湖海试验场 · 智能中控台</h1>
-        <span class="page-sub">数字孪生 / 视频感知 / 设备控制</span>
-      </div>
       <MonitorStatusBar
         :ws-status="wsStatus"
         :monitor-running="monitorRunning"
@@ -261,7 +257,7 @@ onUnmounted(() => {
     </div>
 
     <!-- 操作条 -->
-    <div class="console-card action-bar">
+    <el-card shadow="never" class="action-bar">
       <el-select
         v-model="selectedId"
         placeholder="选择试验任务"
@@ -291,18 +287,17 @@ onUnmounted(() => {
       <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('LOW_BATTERY')">低电量</el-button>
       <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('OUT_OF_BOUNDARY')">越界</el-button>
       <el-button size="small" plain :disabled="!monitorRunning" @click="onDemoAlarm('DATA_SPIKE')">突变</el-button>
-    </div>
+    </el-card>
 
     <!-- 两栏主体：左视觉屏 / 右侧栏 -->
     <div class="console-body">
       <!-- 左：视频 + 孪生 + 曲线 -->
       <div class="col-visual">
-        <div class="console-card visual-card">
-          <div class="console-card-header">
-            <span><i class="dot" />视频感知 + 数字孪生</span>
-          </div>
-          <div class="console-card-body visual-body">
-            <VideoTwinPanel
+        <el-card shadow="never" class="visual-card">
+          <template #header>
+            <span>视频感知 + 数字孪生</span>
+          </template>
+          <VideoTwinPanel
               :experiment-id="selectedId"
               :cv-track="cvTrack"
               :running="monitorRunning"
@@ -311,30 +306,26 @@ onUnmounted(() => {
               :tracks="tracks"
               :highlight="shipAlarm"
               :speed="speed ?? undefined"
-              :battery="battery ?? undefined"
-            />
-          </div>
-        </div>
+            :battery="battery ?? undefined"
+          />
+        </el-card>
 
-        <div class="console-card chart-card">
-          <div class="console-card-header">
-            <span><i class="dot" />实时曲线</span>
-            <span class="chart-hint">{{ frameHistory.length }} 点</span>
-          </div>
-          <div class="console-card-body chart-body">
-            <SensorChart :frames="frameHistory" />
-          </div>
-        </div>
+        <el-card shadow="never" class="chart-card">
+          <template #header>
+            <div class="card-header-row">
+              <span>实时曲线</span>
+              <span class="chart-hint">{{ frameHistory.length }} 采样点</span>
+            </div>
+          </template>
+          <SensorChart :frames="frameHistory" />
+        </el-card>
       </div>
 
       <!-- 右：指标 + 控制 -->
       <aside class="col-side">
-        <div class="console-card side-card">
-          <div class="console-card-header">
-            <span><i class="dot" />运行指标与告警</span>
-          </div>
-          <div class="console-card-body">
-            <RealtimeStatusPanel
+        <el-card shadow="never" class="side-card">
+          <template #header>运行指标与告警</template>
+          <RealtimeStatusPanel
               :latest-frame="latestFrame"
               :alarms="recentAlarms"
               :health="systemHealth"
@@ -343,15 +334,11 @@ onUnmounted(() => {
               :monitor-running="monitorRunning"
               compact
             />
-          </div>
-        </div>
+        </el-card>
 
-        <div class="console-card side-card">
-          <div class="console-card-header">
-            <span><i class="dot" />设备控制台</span>
-          </div>
-          <div class="console-card-body">
-            <el-alert
+        <el-card shadow="never" class="side-card">
+          <template #header>设备控制台</template>
+          <el-alert
               v-if="!experiments.length"
               title="请先在试验任务页启动试验"
               type="info"
@@ -369,8 +356,7 @@ onUnmounted(() => {
               @command-issued="loadSystemHealth"
               @devices-loaded="onDevicesLoaded"
             />
-          </div>
-        </div>
+        </el-card>
       </aside>
     </div>
   </div>
@@ -379,54 +365,43 @@ onUnmounted(() => {
 <style scoped>
 .monitor-console {
   min-height: 100%;
-  padding-bottom: 12px;
 }
+
 .top-area {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
-.page-header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.page-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: #0f766e;
-  margin: 0;
-}
-.page-sub {
-  font-size: 12px;
-  color: #94a3b8;
-}
+
 .top-area :deep(.status-bar) {
   margin-bottom: 0;
 }
 
-.action-bar {
+.action-bar :deep(.el-card__body) {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 8px 12px;
-  margin-bottom: 10px;
+  padding: 12px 16px;
 }
+
+.action-bar {
+  margin-bottom: 12px;
+}
+
 .exp-select {
   width: 240px;
 }
+
 .action-divider {
   width: 1px;
   height: 20px;
-  background: #e2e8f0;
+  background: #e5e7eb;
   margin: 0 4px;
 }
 
-/* 两栏布局：左宽右窄，始终并排（内容区约 900px+ 即可） */
 .console-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 10px;
+  gap: 12px;
   align-items: start;
 }
 
@@ -434,35 +409,37 @@ onUnmounted(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .col-side {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
-.visual-body {
-  padding: 8px !important;
+.visual-card :deep(.el-card__body) {
+  padding: 12px;
 }
 
-.chart-body {
-  padding: 4px 10px 10px !important;
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .chart-hint {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: 12px;
+  color: #9ca3af;
   font-weight: 400;
 }
 
 .side-tip {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-/* 极窄屏才单列，且视觉屏在上 */
 @media (max-width: 860px) {
   .console-body {
     grid-template-columns: 1fr;

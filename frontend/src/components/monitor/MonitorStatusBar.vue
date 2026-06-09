@@ -105,12 +105,10 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 14px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
-  margin-bottom: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
   flex-wrap: wrap;
 }
 .status-left {
@@ -126,7 +124,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding-right: 14px;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid #e5e7eb;
 }
 .exp-dot {
   width: 8px;
@@ -136,8 +134,8 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .exp-dot.live {
-  background: #14b8a6;
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.25);
+  background: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
@@ -147,7 +145,7 @@ onUnmounted(() => {
 .exp-name {
   font-size: 14px;
   font-weight: 600;
-  color: #0f766e;
+  color: #111827;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

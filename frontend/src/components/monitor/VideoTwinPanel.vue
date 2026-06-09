@@ -54,7 +54,7 @@ const bboxStyle = computed(() => {
 })
 
 function drawGrid(ctx: CanvasRenderingContext2D, w: number, h: number) {
-  ctx.strokeStyle = 'rgba(125, 211, 252, 0.12)'
+  ctx.strokeStyle = 'rgba(147, 197, 253, 0.15)'
   ctx.lineWidth = 1
   const step = 40
   for (let x = 0; x <= w; x += step) {
@@ -90,16 +90,16 @@ function drawCanvas() {
   localPhase += props.running ? 0.02 : 0
 
   const grad = ctx.createLinearGradient(0, 0, 0, h)
-  grad.addColorStop(0, '#0a3d5c')
-  grad.addColorStop(0.6, '#0c4a6e')
-  grad.addColorStop(1, '#075985')
+  grad.addColorStop(0, '#1e3a5f')
+  grad.addColorStop(0.6, '#1e40af')
+  grad.addColorStop(1, '#1d4ed8')
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, w, h)
   drawGrid(ctx, w, h)
 
   // 扫描线
   const scanY = (localPhase * 80) % h
-  ctx.fillStyle = 'rgba(20, 184, 166, 0.06)'
+  ctx.fillStyle = 'rgba(37, 99, 235, 0.08)'
   ctx.fillRect(0, scanY, w, 3)
 
   ctx.fillStyle = 'rgba(20, 80, 100, 0.5)'
@@ -267,41 +267,33 @@ onUnmounted(() => cancelAnimationFrame(animId))
 .video-twin-panel {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;
 }
 .panel-section {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
   overflow: hidden;
-  background: #0c4a6e;
+  background: #fff;
 }
 .twin-section {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: #fff;
 }
 .section-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-.twin-section .section-head {
-  background: #f1f5f9;
-  border-bottom-color: #e2e8f0;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #e5e7eb;
 }
 .head-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: #e0f2fe;
-}
-.twin-section .head-title {
-  color: #0f766e;
+  color: #111827;
 }
 .head-scale {
   font-size: 11px;
-  color: #64748b;
+  color: #6b7280;
   font-family: monospace;
 }
 .video-viewport,
@@ -311,7 +303,7 @@ onUnmounted(() => cancelAnimationFrame(animId))
 .video-viewport {
   aspect-ratio: 16 / 9;
   min-height: 220px;
-  background: #0a3d5c;
+  background: #111827;
 }
 .viewport-el {
   width: 100%;
@@ -352,7 +344,7 @@ onUnmounted(() => cancelAnimationFrame(animId))
   right: 8px;
 }
 .hud-tag.live {
-  color: #34d399;
+  color: #60a5fa;
   font-weight: 700;
 }
 .hud-sep {
@@ -380,18 +372,20 @@ onUnmounted(() => cancelAnimationFrame(animId))
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 4px 0;
-  font-size: 11px;
-  color: #64748b;
-  background: #f8fafc;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #6b7280;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 4px;
 }
 .link-arrow {
-  color: #14b8a6;
+  color: #2563eb;
   font-weight: 700;
 }
 .link-coord {
   font-family: monospace;
-  color: #0f766e;
+  color: #1d4ed8;
   font-weight: 600;
 }
 .twin-viewport {
@@ -406,12 +400,12 @@ onUnmounted(() => cancelAnimationFrame(animId))
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
   padding: 6px 10px;
   font-size: 11px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   pointer-events: none;
 }
 .hud-row {
@@ -421,10 +415,10 @@ onUnmounted(() => cancelAnimationFrame(animId))
   margin-bottom: 2px;
 }
 .hud-row span {
-  color: #64748b;
+  color: #6b7280;
 }
 .hud-row strong {
-  color: #0f766e;
+  color: #1d4ed8;
   font-family: monospace;
 }
 .device-markers {
@@ -437,10 +431,10 @@ onUnmounted(() => cancelAnimationFrame(animId))
 }
 .marker {
   font-size: 14px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 4px;
   padding: 2px 5px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   line-height: 1;
 }
 </style>

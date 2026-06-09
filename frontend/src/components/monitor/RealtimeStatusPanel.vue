@@ -25,8 +25,8 @@ const kpiCards = computed(() => [
     label: '在线设备',
     value: `${props.onlineDeviceCount}/${props.totalDeviceCount}`,
     unit: '',
-    color: '#0f766e',
-    bg: '#f0fdfa',
+    color: '#2563eb',
+    bg: '#eff6ff',
   },
   {
     label: '当前速度',
@@ -60,8 +60,8 @@ const kpiCards = computed(() => [
     label: '边缘端',
     value: props.health?.edgeAgent === 'UP' ? '在线' : '离线',
     unit: '',
-    color: props.health?.edgeAgent === 'UP' ? '#0f766e' : '#94a3b8',
-    bg: props.health?.edgeAgent === 'UP' ? '#f0fdfa' : '#f8fafc',
+    color: props.health?.edgeAgent === 'UP' ? '#2563eb' : '#9ca3af',
+    bg: props.health?.edgeAgent === 'UP' ? '#eff6ff' : '#f9fafb',
   },
 ])
 
@@ -177,12 +177,12 @@ const systemItems = computed(() => {
 }
 .kpi-card {
   padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
 }
 .kpi-label {
   font-size: 11px;
-  color: #64748b;
+  color: #6b7280;
   margin-bottom: 4px;
 }
 .kpi-value {
@@ -201,18 +201,19 @@ const systemItems = computed(() => {
   flex-wrap: wrap;
   gap: 12px;
   padding: 8px 10px;
-  background: #f8fafc;
-  border-radius: 6px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
   font-size: 12px;
-  color: #475569;
+  color: #374151;
   font-family: monospace;
 }
 .alarm-block,
 .system-block {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
   padding: 10px 12px;
-  background: #fafbfc;
+  background: #fafafa;
 }
 .block-head {
   display: flex;
@@ -234,8 +235,8 @@ const systemItems = computed(() => {
   height: 36px;
   margin: 0 auto 8px;
   border-radius: 50%;
-  background: #d1fae5;
-  color: #059669;
+  background: #dbeafe;
+  color: #2563eb;
   font-size: 18px;
   line-height: 36px;
   font-weight: 700;

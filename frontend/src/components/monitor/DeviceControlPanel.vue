@@ -276,11 +276,9 @@ onUnmounted(stopPolling)
   font-size: 13px;
 }
 .section-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #64748b;
+  color: #6b7280;
   margin-bottom: 8px;
 }
 .device-cards {
@@ -307,19 +305,19 @@ onUnmounted(stopPolling)
 }
 .device-card {
   padding: 8px 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
-  background: #fafbfc;
+  background: #fafafa;
 }
 .device-card:hover {
-  border-color: #14b8a6;
+  border-color: #93c5fd;
 }
 .device-card.active {
-  border-color: #0f766e;
-  background: #f0fdfa;
-  box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.15);
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.12);
 }
 .device-card.offline {
   opacity: 0.65;
@@ -332,7 +330,7 @@ onUnmounted(stopPolling)
 .dc-name {
   font-weight: 600;
   font-size: 12px;
-  color: #1e293b;
+  color: #111827;
 }
 .dc-status {
   font-size: 10px;
@@ -358,7 +356,7 @@ onUnmounted(stopPolling)
 .control-block {
   margin-bottom: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f3f4f6;
 }
 .control-block.safety {
   border-bottom: none;
@@ -373,49 +371,50 @@ onUnmounted(stopPolling)
 }
 .c-btn {
   padding: 7px 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
   font-size: 12px;
   font-weight: 500;
-  color: #334155;
+  color: #374151;
   cursor: pointer;
   transition: all 0.15s;
   text-align: center;
 }
 .c-btn:hover:not(:disabled) {
-  border-color: #14b8a6;
-  color: #0f766e;
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
 }
 .c-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 .c-btn-primary {
-  background: linear-gradient(180deg, #14b8a6 0%, #0f766e 100%);
-  border-color: #0f766e;
+  background: #2563eb;
+  border-color: #2563eb;
   color: #fff;
 }
 .c-btn-primary:hover:not(:disabled) {
   color: #fff;
-  filter: brightness(1.05);
+  background: #1d4ed8;
+  border-color: #1d4ed8;
 }
 .c-btn-wave {
-  border-color: #0284c7;
-  color: #0369a1;
+  border-color: #2563eb;
+  color: #2563eb;
 }
 .c-btn-emergency {
   width: 100%;
   padding: 10px;
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: #dc2626;
   border: 1px solid #b91c1c;
   color: #fff;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
 }
 .c-btn-emergency:hover:not(:disabled) {
   filter: brightness(1.08);
@@ -435,7 +434,7 @@ onUnmounted(stopPolling)
   margin-bottom: 2px;
 }
 .slider-label strong {
-  color: #0f766e;
+  color: #2563eb;
 }
 .cmd-log {
   margin-top: 8px;
