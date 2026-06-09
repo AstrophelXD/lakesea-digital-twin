@@ -15,7 +15,8 @@
 - [ ] 试验归档：历史列表 + 时间轴播放 + 告警标记
 - [ ] 试验归档：导出 CSV/JSON + AI 报告导出
 - [ ] 试验归档：文件上传（报告/原始数据/视频）
-- [ ] AI 分析工作流 + Mock/DeepSeek 模式标识
+- [ ] AI 分析工作流 + 数据摘要 + 五段报告 + 调用日志表
+- [ ] Mock/DeepSeek 模式标识
 
 ## 后端与架构
 
@@ -30,7 +31,7 @@
 - [ ] 达梦管理工具连接界面
 - [ ] 表结构截图（含外键约束）
 - [ ] `EXP_RESERVATION` / `EXP_RESERVATION_RESOURCE` 主从表数据
-- [ ] `EXPERIMENT_TASK`、`ALARM_RECORD`、`AI_REPORT` 数据
+- [ ] `EXPERIMENT_TASK`、`ALARM_RECORD`、`AI_REPORT`、`AI_CALL_LOG` 数据
 - [ ] 页面数据与库表数据对比
 
 ## 接口与实时

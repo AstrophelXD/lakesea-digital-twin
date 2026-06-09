@@ -158,7 +158,7 @@ lakesea-digital-twin/
 - 资源管理与冲突校验
 - WebSocket 模拟数据与数字孪生监控页
 - 试验归档、轨迹回放与文件管理
-- AI 报告生成（支持 `MOCK_AI` 本地模拟与 DeepSeek API）
+- AI 报告生成（五段结构、数据摘要预览、调用日志；支持 `MOCK_AI` 与 DeepSeek API，见 [docs/ai-report.md](./docs/ai-report.md)）
 
 可选后续增强：
 
@@ -224,6 +224,7 @@ lakesea-digital-twin/
 - [x] 预约冲突检测、审批流程展示、任务跳转
 - [x] 数字孪生监控四区布局 + 演示告警按钮
 - [x] 试验归档回放（时间轴/告警标记/导出/文件上传）见 [docs/archive-replay.md](./docs/archive-replay.md)
+- [x] AI 分析报告工作流（摘要预览/调用日志/五段展示）见 [docs/ai-report.md](./docs/ai-report.md)
 - [x] 答辩演示脚本与截图清单
 
 ### 可选增强

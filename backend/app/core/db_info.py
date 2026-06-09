@@ -23,6 +23,7 @@ CORE_TABLES = [
     "ALARM_RECORD",
     "EXPERIMENT_FILE",
     "AI_REPORT",
+    "AI_CALL_LOG",
 ]
 
 

@@ -1,10 +1,24 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { AiReport } from '@/api/ai'
 
-defineProps<{
+const props = defineProps<{
   report: AiReport | null
   loading?: boolean
 }>()
+
+const sections = computed(() => {
+  if (!props.report) return []
+  if (props.report.sections?.length) return props.report.sections
+  const blocks: { title: string; content: string }[] = []
+  if (props.report.summaryText) {
+    blocks.push({ title: '试验概况与数据摘要', content: props.report.summaryText })
+  }
+  if (props.report.analysisText) {
+    blocks.push({ title: '异常分析、风险提示与改进建议', content: props.report.analysisText })
+  }
+  return blocks
+})
 </script>
 
 <template>
@@ -12,20 +26,22 @@ defineProps<{
     <template v-if="report">
       <div class="header">
         <h3>{{ report.reportTitle || '试验分析报告' }}</h3>
-        <el-tag v-if="report.mock" type="info" size="small">模拟报告（未调用 DeepSeek）</el-tag>
-        <el-tag v-else type="success" size="small">{{ report.modelName }}</el-tag>
+        <el-tag v-if="report.analysisTypeLabel" type="primary" size="small">
+          {{ report.analysisTypeLabel }}
+        </el-tag>
+        <el-tag v-if="report.mock" type="info" size="small">Mock 模式</el-tag>
+        <el-tag v-else type="success" size="small">{{ report.modelName || 'DeepSeek' }}</el-tag>
+        <el-tag v-if="report.analysisMode" type="warning" size="small">
+          {{ report.analysisMode }}
+        </el-tag>
         <span class="time">{{ report.generatedTime }}</span>
       </div>
-      <el-card shadow="never" class="block">
-        <template #header>试验概况与数据摘要</template>
-        <div class="text-content">{{ report.summaryText }}</div>
-      </el-card>
-      <el-card shadow="never" class="block">
-        <template #header>异常分析、风险提示与改进建议</template>
-        <div class="text-content pre-wrap">{{ report.analysisText }}</div>
+      <el-card v-for="(sec, idx) in sections" :key="idx" shadow="never" class="block">
+        <template #header>{{ sec.title }}</template>
+        <div class="text-content pre-wrap">{{ sec.content }}</div>
       </el-card>
     </template>
-    <el-empty v-else description="尚未生成报告，请点击「生成 AI 分析」" />
+    <el-empty v-else description="尚未生成报告，请点击「生成报告」" />
   </div>
 </template>
 

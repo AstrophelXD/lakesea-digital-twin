@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.ai_api import reports_router as ai_reports_router
 from app.api.ai_api import router as ai_router
 from app.api.dashboard_api import router as dashboard_router
 from app.api.health_api import router as health_router
@@ -56,6 +57,7 @@ app.include_router(alarm_router)
 app.include_router(ws_router)
 app.include_router(file_router)
 app.include_router(ai_router)
+app.include_router(ai_reports_router)
 
 
 @app.get("/api/health")

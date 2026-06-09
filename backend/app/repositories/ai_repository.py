@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.archive import AiReport
@@ -46,3 +46,17 @@ class AiReportRepository:
 
     def soft_delete(self, report: AiReport) -> None:
         report.is_deleted = 1
+
+    def list_reports(
+        self, page: int = 1, page_size: int = 20
+    ) -> Tuple[List[AiReport], int]:
+        stmt = (
+            select(AiReport)
+            .where(AiReport.is_deleted == 0)
+            .order_by(AiReport.generated_time.desc())
+        )
+        total = self.db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+        items = list(
+            self.db.scalars(stmt.offset((page - 1) * page_size).limit(page_size)).all()
+        )
+        return items, total

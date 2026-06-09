@@ -138,8 +138,11 @@ P3  代码质量与报告支撑
 | 报告固定分段结构 | [x] | Mock 模板已分段 |
 | DeepSeek Key 仅后端读取 | [x] | |
 | 页面显示 Mock / DeepSeek API 模式 | [x] | `analysisMode` |
-| AI 调用日志（时间/模型/mock/token/失败原因） | [ ] | 待实现 `AI_CALL_LOG` 或类似表 |
+| AI 调用日志（时间/模型/mock/token/失败原因） | [x] | `AI_CALL_LOG` + `GET /api/ai/logs` + 页面日志表 |
+| 试验数据摘要预览 API | [x] | `GET /api/ai/reports/summary/{id}` |
+| 报告列表 API | [x] | `GET /api/ai/reports/list` |
 | 报告保存、查询、重新生成 | [x] | |
+| AI 分析文档 | [x] | `docs/ai-report.md` |
 
 ---
 
@@ -207,6 +210,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | 完整演示顺序 | [x] | `docs/demo-script.md` |
 | 报告截图清单 | [x] | `docs/screenshot-checklist.md` |
 | 本对照清单 | [x] | `docs/todo-checklist.md` |
+| AI 分析报告说明 | [x] | `docs/ai-report.md` |
 
 ---
 
@@ -229,8 +233,8 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 [ ] 12. 触发演示告警
 [ ] 13. 完成试验并归档
 [ ] 14. 归档页时间轴回放
-[ ] 15. 生成 AI 分析报告
-[ ] 16. 达梦库中查看主从表、任务、告警、AI_REPORT 数据
+[ ] 15. 生成 AI 分析报告（含数据摘要、调用日志）
+[ ] 16. 达梦库中查看主从表、任务、告警、AI_REPORT、AI_CALL_LOG 数据
 ```
 
 ---
@@ -240,9 +244,8 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 若时间有限，优先补齐：
 
 1. **达梦实机联调 + 截图**（P0-1 唯一未实机项）
-2. **归档导出功能**（P1-6，答辩好讲「数据复盘」）
-3. **一键演示重置**（P2-10，答辩当天保险）
-4. MQTT / 审计日志（时间充裕再加）
+2. **一键演示重置**（P2-10，答辩当天保险）
+3. MQTT / 审计日志（时间充裕再加）
 
 ---
 
@@ -251,7 +254,7 @@ cd backend && python -m scripts.smoke_test   # 先启动 uvicorn
 | 级别 | 已完成 | 部分完成 | 待完成 |
 |------|--------|----------|--------|
 | P0 | 17 | 0 | 1（实机验收） |
-| P1 | 35 | 0 | 1 |
+| P1 | 38 | 0 | 0 |
 | P2 | 0 | 0 | 14 |
 | P3 | 5 | 1 | 0 |
 

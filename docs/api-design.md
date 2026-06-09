@@ -385,7 +385,19 @@
 
 ## 9. AI 报告接口
 
-## 9.1 生成 AI 报告
+## 9.1 查询分析模式
+
+`GET /api/ai/mode`
+
+返回 `analysisMode`（Mock / DeepSeek API）、`mockAi`、`hasApiKey`、`modelName`。
+
+## 9.2 试验数据摘要（生成前预览）
+
+`GET /api/ai/reports/summary/{experimentId}`
+
+聚合传感器极值、告警列表，供前端展示。
+
+## 9.3 生成 AI 报告
 
 `POST /api/ai/reports/generate`
 
@@ -393,20 +405,34 @@
 
 ```json
 {
-  "experimentId": 1001
+  "experimentId": 1001,
+  "analysisType": "OVERVIEW"
 }
 ```
+
+`analysisType` 可选：`OVERVIEW` | `ANOMALY` | `RISK` | `SUGGESTION`。
 
 规则：
 
 1. 仅 `COMPLETED` 或 `ARCHIVED` 的试验任务允许生成。
-2. 后端先聚合结构化摘要，再调用 DeepSeek API。
+2. 后端先聚合结构化摘要，再调用 DeepSeek API 或 Mock 模板。
+3. 重新生成会软删除旧报告；每次调用写入 `AI_CALL_LOG`。
 
-## 9.2 查询试验 AI 报告
+## 9.4 查询试验 AI 报告
 
 `GET /api/ai/reports/{experimentId}`
 
-## 9.3 删除 AI 报告
+返回 `sections` 五段结构及 `analysisMode`。
+
+## 9.5 报告列表
+
+`GET /api/ai/reports/list`
+
+## 9.6 AI 调用日志
+
+`GET /api/ai/logs?experimentId=&page=&pageSize=`
+
+## 9.7 删除 AI 报告
 
 `DELETE /api/ai/reports/{id}`
 
