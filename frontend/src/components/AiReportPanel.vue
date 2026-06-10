@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { AiReport } from '@/api/ai'
+import MarkdownContent from '@/components/MarkdownContent.vue'
 
 const props = defineProps<{
   report: AiReport | null
@@ -38,7 +39,7 @@ const sections = computed(() => {
       </div>
       <el-card v-for="(sec, idx) in sections" :key="idx" shadow="never" class="block">
         <template #header>{{ sec.title }}</template>
-        <div class="text-content pre-wrap">{{ sec.content }}</div>
+        <MarkdownContent :content="sec.content" />
       </el-card>
     </template>
     <el-empty v-else description="尚未生成报告，请点击「生成报告」" />
@@ -68,13 +69,5 @@ const sections = computed(() => {
 }
 .block {
   margin-bottom: 12px;
-}
-.text-content {
-  line-height: 1.8;
-  color: #374151;
-  font-size: 14px;
-}
-.pre-wrap {
-  white-space: pre-wrap;
 }
 </style>

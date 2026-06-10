@@ -186,6 +186,15 @@ onMounted(async () => {
       <el-tag type="info">当前模式：{{ modeLabel }}</el-tag>
     </el-card>
 
+    <el-alert
+      v-if="aiMode?.hasApiKey && aiMode?.mockAi"
+      type="warning"
+      :closable="false"
+      show-icon
+      class="mode-hint"
+      title="已配置 DeepSeek API Key，但 MOCK_AI=true，当前仍使用本地 Mock。请在 backend/.env 设置 MOCK_AI=false 以调用真实 API。"
+    />
+
     <el-card
       v-if="summary || selectedExp"
       v-loading="loadingSummary"
@@ -262,6 +271,9 @@ onMounted(async () => {
   margin-bottom: 12px;
 }
 .toolbar {
+  margin-bottom: 12px;
+}
+.mode-hint {
   margin-bottom: 12px;
 }
 .toolbar :deep(.el-card__body) {

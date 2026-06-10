@@ -9,6 +9,11 @@ from sqlalchemy.orm import Session
 from app.repositories.ai_repository import AiReportRepository
 from app.repositories.experiment_repository import ExperimentRepository
 from app.repositories.sensor_repository import SensorRepository
+from app.utils.ai_report_utils import (
+    markdown_to_html,
+    parse_sections_from_stored,
+    sections_to_markdown,
+)
 
 
 class ArchiveExportService:
@@ -94,31 +99,41 @@ class ArchiveExportService:
             raise HTTPException(status_code=404, detail="尚未生成 AI 报告，请先在 AI 分析页生成")
 
         title = report.report_title or f"{task.exp_name} - AI Report"
-        summary = report.summary_text or ""
-        analysis = report.analysis_text or ""
         generated = report.generated_time.strftime("%Y-%m-%d %H:%M:%S")
         model = report.model_name or "unknown"
+        sections = parse_sections_from_stored(
+            report.summary_text or "", report.analysis_text or ""
+        )
+        body_md = sections_to_markdown(sections)
 
         if fmt == "html":
+            section_html = "\n".join(
+                f"<section class=\"block\"><h2>{sec.title}</h2>"
+                f"{markdown_to_html(sec.content)}</section>"
+                for sec in sections
+            )
             content = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8"/>
   <title>{title}</title>
   <style>
-    body {{ font-family: sans-serif; max-width: 800px; margin: 2rem auto; line-height: 1.6; }}
-    h1 {{ color: #0f766e; }}
-    h2 {{ border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }}
-    .meta {{ color: #6b7280; font-size: 14px; }}
+    body {{ font-family: "Segoe UI", sans-serif; max-width: 860px; margin: 2rem auto; line-height: 1.7; color: #374151; }}
+    h1 {{ color: #0f766e; margin-bottom: 0.25rem; }}
+    h2 {{ color: #0f766e; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-top: 1.5rem; }}
+    .meta {{ color: #6b7280; font-size: 14px; margin-bottom: 1.5rem; }}
+    .block {{ margin-bottom: 1rem; }}
+    table {{ border-collapse: collapse; width: 100%; margin: 0.5rem 0; }}
+    th, td {{ border: 1px solid #e5e7eb; padding: 6px 10px; text-align: left; }}
+    th {{ background: #f3f4f6; }}
+    code {{ background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }}
+    ul, ol {{ padding-left: 1.25rem; }}
   </style>
 </head>
 <body>
   <h1>{title}</h1>
   <p class="meta">任务 {task.task_no} · 模型 {model} · 生成于 {generated}</p>
-  <h2>试验概况与关键数据</h2>
-  <pre>{summary}</pre>
-  <h2>分析与建议</h2>
-  <pre>{analysis}</pre>
+  {section_html}
 </body>
 </html>"""
             return "text/html; charset=utf-8", f"{task.task_no}_ai_report.html", content
@@ -129,12 +144,6 @@ class ArchiveExportService:
 > 模型：{model}  
 > 生成时间：{generated}
 
-## 试验概况与关键数据
-
-{summary}
-
-## 分析与建议
-
-{analysis}
+{body_md}
 """
         return "text/markdown; charset=utf-8", f"{task.task_no}_ai_report.md", content

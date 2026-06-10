@@ -3,6 +3,7 @@ from collections import Counter
 from typing import Any, List, Optional
 
 import httpx
+from httpx import HTTPError, TimeoutException
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -26,16 +27,14 @@ from app.schemas.ai_schema import (
     ReportSection,
 )
 from app.schemas.common import PageResult
+from app.utils.ai_report_utils import (
+    parse_sections_from_content,
+    parse_sections_from_stored,
+    sections_to_text,
+)
 
 
 class AiService:
-    SECTION_TITLES = [
-        "试验概况",
-        "关键数据",
-        "异常记录",
-        "可能原因",
-        "改进建议",
-    ]
 
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -46,12 +45,16 @@ class AiService:
         self.alarm_repo = AlarmRepository(db)
         self.settings = get_settings()
 
+    def _use_mock(self) -> bool:
+        has_key = bool((self.settings.deepseek_api_key or "").strip())
+        return not has_key or self.settings.mock_ai
+
     def get_mode(self) -> AiModeOut:
-        use_mock = self.settings.mock_ai or not self.settings.deepseek_api_key
+        use_mock = self._use_mock()
         return AiModeOut(
             analysis_mode="Mock" if use_mock else "DeepSeek API",
             mock_ai=self.settings.mock_ai,
-            has_api_key=bool(self.settings.deepseek_api_key),
+            has_api_key=bool((self.settings.deepseek_api_key or "").strip()),
             model_name=self.settings.deepseek_model if not use_mock else "mock-local",
         )
 
@@ -128,78 +131,53 @@ class AiService:
         self, summary: dict[str, Any], analysis_type: str
     ) -> List[ReportSection]:
         focus = self._analysis_focus(analysis_type)
+        alarm_block = (
+            f"- **告警数量**：{summary['alarm_count']} 条\n"
+            f"- **主要类型**：{summary['alarm_summary']}"
+            if summary["alarm_count"]
+            else "本次试验未记录显著异常告警。"
+        )
+        cause_block = (
+            f"告警以 **{summary['alarm_summary']}** 为主，可能与操船控制、流场扰动或传感器噪声有关。"
+            if summary["alarm_count"]
+            else "数据整体平稳，未发现明显异常模式。"
+        )
         return [
             ReportSection(
                 title="试验概况",
                 content=(
-                    f"试验「{summary['exp_name']}」（{summary['task_no']}）已完成数据采集，"
-                    f"分析类型：{focus}。"
+                    f"试验 **{summary['exp_name']}**（`{summary['task_no']}`）已完成数据采集。\n\n"
+                    f"- **分析类型**：{focus}\n"
+                    f"- **数据状态**：可用于归档与复盘"
                 ),
             ),
             ReportSection(
                 title="关键数据",
                 content=(
-                    f"采样点 {summary['point_count']} 个；"
-                    f"最大速度 {summary['max_speed'] or 0:.2f} m/s；"
-                    f"最低电量 {summary['min_battery'] or 0:.1f}%；"
-                    f"最大阻力 {summary['max_resistance'] or 0:.1f} N；"
-                    f"最大横摇 {summary['max_roll'] or 0:.1f}°。"
+                    f"| 指标 | 数值 |\n| --- | --- |\n"
+                    f"| 采样点 | {summary['point_count']} 个 |\n"
+                    f"| 最大速度 | {summary['max_speed'] or 0:.2f} m/s |\n"
+                    f"| 最低电量 | {summary['min_battery'] or 0:.1f}% |\n"
+                    f"| 最大阻力 | {summary['max_resistance'] or 0:.1f} N |\n"
+                    f"| 最大横摇 | {summary['max_roll'] or 0:.1f}° |"
                 ),
             ),
-            ReportSection(
-                title="异常记录",
-                content=(
-                    f"共 {summary['alarm_count']} 条告警：{summary['alarm_summary']}。"
-                    if summary["alarm_count"]
-                    else "本次试验未记录显著异常告警。"
-                ),
-            ),
-            ReportSection(
-                title="可能原因",
-                content=(
-                    f"告警以 {summary['alarm_summary']} 为主，可能与操船控制、流场扰动或传感器噪声有关。"
-                    if summary["alarm_count"]
-                    else "数据整体平稳，未发现明显异常模式。"
-                ),
-            ),
+            ReportSection(title="异常记录", content=alarm_block),
+            ReportSection(title="可能原因", content=cause_block),
             ReportSection(
                 title="改进建议",
                 content=(
-                    "建议后续增加稳向板对比试验，并在低速段延长采样时间以提高阻力曲线分辨率；"
-                    "对频繁告警类型建立阈值预警策略。"
+                    "1. 后续可增加稳向板对比试验，提高阻力曲线分辨率。\n"
+                    "2. 在低速段延长采样时间，减少统计波动。\n"
+                    "3. 对频繁告警类型建立阈值预警与现场复核流程。"
                 ),
             ),
-        ]
-
-    def _sections_to_text(self, sections: List[ReportSection]) -> tuple[str, str]:
-        summary_parts = [s for s in sections if s.title in ("试验概况", "关键数据", "异常记录")]
-        analysis_parts = [s for s in sections if s.title in ("可能原因", "改进建议")]
-        summary_text = "\n\n".join(f"【{s.title}】\n{s.content}" for s in summary_parts)
-        analysis_text = "\n\n".join(f"【{s.title}】\n{s.content}" for s in analysis_parts)
-        return summary_text, analysis_text
-
-    def _parse_sections_from_text(
-        self, summary_text: str, analysis_text: str
-    ) -> List[ReportSection]:
-        sections: List[ReportSection] = []
-        for block in (summary_text or "").split("【"):
-            if "】" not in block:
-                continue
-            title, content = block.split("】", 1)
-            sections.append(ReportSection(title=title.strip(), content=content.strip()))
-        for block in (analysis_text or "").split("【"):
-            if "】" not in block:
-                continue
-            title, content = block.split("】", 1)
-            sections.append(ReportSection(title=title.strip(), content=content.strip()))
-        return sections or [
-            ReportSection(title="试验概况与数据摘要", content=summary_text or ""),
-            ReportSection(title="分析与建议", content=analysis_text or ""),
         ]
 
     def _build_prompt(self, summary: dict[str, Any], analysis_type: str = "OVERVIEW") -> str:
         focus = self._analysis_focus(analysis_type)
-        return f"""你是船舶与海洋工程试验分析专家。请根据以下试验结构化摘要，撰写试验分析报告。
+        return f"""请根据以下试验结构化摘要撰写中文分析报告。
+
 分析类型：{focus}
 
 试验名称：{summary['exp_name']}
@@ -212,43 +190,71 @@ class AiService:
 告警数量：{summary['alarm_count']}
 主要告警：{summary['alarm_summary']}
 
-请用中文输出，严格分为五段，每段以【标题】开头：
-【试验概况】
-【关键数据】
-【异常记录】
-【可能原因】
-【改进建议】
+输出要求：
+1. 严格分为五段，每段必须以【标题】开头，标题依次为：试验概况、关键数据、异常记录、可能原因、改进建议。
+2. 每段正文使用 Markdown（可用列表、加粗、表格），基于给定数据客观分析，不要编造未提供的数值。
+3. 不要输出代码块围栏外的多余说明，不要重复整段提示词。
 """
 
     async def _call_deepseek(
-        self, prompt: str, analysis_type: str = "OVERVIEW"
+        self,
+        prompt: str,
+        analysis_type: str = "OVERVIEW",
+        exp_name: str = "",
     ) -> tuple[str, str, str, Optional[int]]:
-        url = f"{self.settings.deepseek_base_url.rstrip('/')}/chat/completions"
+        base = self.settings.deepseek_base_url.rstrip("/")
+        if base.endswith("/v1"):
+            url = f"{base}/chat/completions"
+        else:
+            url = f"{base}/v1/chat/completions"
         headers = {
-            "Authorization": f"Bearer {self.settings.deepseek_api_key}",
+            "Authorization": f"Bearer {self.settings.deepseek_api_key.strip()}",
             "Content-Type": "application/json",
         }
         body = {
             "model": self.settings.deepseek_model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "你是船舶与海洋工程湖海试验场数据分析专家。"
+                        "输出专业、简洁的中文 Markdown 分析报告，严格遵循用户给出的分段格式。"
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.5,
+            "max_tokens": 2048,
         }
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(url, headers=headers, json=body)
-            if resp.status_code != 200:
-                raise HTTPException(
-                    status_code=502,
-                    detail=f"DeepSeek API 调用失败: {resp.text[:200]}",
-                )
-            data = resp.json()
-        content = data["choices"][0]["message"]["content"]
+        try:
+            async with httpx.AsyncClient(timeout=90.0) as client:
+                resp = await client.post(url, headers=headers, json=body)
+        except TimeoutException:
+            raise HTTPException(status_code=504, detail="DeepSeek API 请求超时，请稍后重试")
+        except HTTPError as exc:
+            raise HTTPException(status_code=502, detail=f"DeepSeek API 网络错误: {exc}")
+
+        if resp.status_code != 200:
+            detail = resp.text[:300].replace("\n", " ")
+            raise HTTPException(
+                status_code=502,
+                detail=f"DeepSeek API 调用失败 ({resp.status_code}): {detail}",
+            )
+
+        data = resp.json()
+        choices = data.get("choices") or []
+        if not choices:
+            raise HTTPException(status_code=502, detail="DeepSeek API 返回空结果")
+        content = (choices[0].get("message") or {}).get("content") or ""
+        if not content.strip():
+            raise HTTPException(status_code=502, detail="DeepSeek API 返回内容为空")
+
         usage = data.get("usage", {})
         tokens = usage.get("total_tokens")
-        sections = self._parse_sections_from_text(content, "")
-        if len(sections) <= 2:
-            sections = self._parse_sections_from_text(content, content)
-        summary_text, analysis_text = self._sections_to_text(sections)
-        title = f"DeepSeek - {self._analysis_focus(analysis_type)}"
+        sections = parse_sections_from_content(content)
+        summary_text, analysis_text = sections_to_text(sections)
+        focus = self._analysis_focus(analysis_type)
+        title = f"{exp_name or '试验'} - {focus}" if exp_name else f"DeepSeek - {focus}"
         return title, summary_text, analysis_text, tokens
 
     def _write_call_log(
@@ -281,7 +287,7 @@ class AiService:
         self, report: AiReport, is_mock: bool, analysis_type: Optional[str] = None
     ) -> AiReportOut:
         atype = analysis_type or report.analysis_type or "OVERVIEW"
-        sections = self._parse_sections_from_text(
+        sections = parse_sections_from_stored(
             report.summary_text or "", report.analysis_text or ""
         )
         out = AiReportOut.model_validate(report)
@@ -298,20 +304,20 @@ class AiService:
         user_id = user.id
         summary = self._build_summary(experiment_id)
         prompt = self._build_prompt(summary, analysis_type)
-        use_mock = self.settings.mock_ai or not self.settings.deepseek_api_key
+        use_mock = self._use_mock()
         start = time.monotonic()
         token_used: Optional[int] = None
 
         try:
             if use_mock:
                 sections = self._build_sections(summary, analysis_type)
-                summary_text, analysis_text = self._sections_to_text(sections)
+                summary_text, analysis_text = sections_to_text(sections)
                 title = f"{summary['exp_name']} - {self._analysis_focus(analysis_type)}"
                 model_name = "mock-local"
                 is_mock = True
             else:
                 title, summary_text, analysis_text, token_used = await self._call_deepseek(
-                    prompt, analysis_type
+                    prompt, analysis_type, summary["exp_name"]
                 )
                 model_name = self.settings.deepseek_model
                 is_mock = False
