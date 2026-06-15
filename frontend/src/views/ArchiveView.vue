@@ -451,7 +451,7 @@ onUnmounted(() => {
 .stat-num {
   font-size: 20px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--app-primary);
 }
 .stat-lbl {
   font-size: 12px;
@@ -481,7 +481,7 @@ onUnmounted(() => {
 }
 .replay-time {
   font-size: 13px;
-  color: #0f766e;
+  color: var(--app-primary);
   font-weight: 600;
   min-width: 64px;
 }

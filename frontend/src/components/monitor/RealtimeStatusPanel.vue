@@ -39,7 +39,7 @@ const kpiCards = computed(() => [
     label: '电量',
     value: battery.value != null ? Math.round(battery.value) : '—',
     unit: battery.value != null ? '%' : '',
-    color: battery.value != null && battery.value < 20 ? '#dc2626' : '#059669',
+    color: battery.value != null && battery.value < 20 ? '#dc2626' : '#2563eb',
     bg: battery.value != null && battery.value < 20 ? '#fef2f2' : '#f0fdf4',
   },
   {

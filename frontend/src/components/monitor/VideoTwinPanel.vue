@@ -90,7 +90,7 @@ function drawCanvas() {
   localPhase += props.running ? 0.02 : 0
 
   const grad = ctx.createLinearGradient(0, 0, 0, h)
-  grad.addColorStop(0, '#1e3a5f')
+  grad.addColorStop(0, '#1e3a8a')
   grad.addColorStop(0.6, '#1e40af')
   grad.addColorStop(1, '#1d4ed8')
   ctx.fillStyle = grad

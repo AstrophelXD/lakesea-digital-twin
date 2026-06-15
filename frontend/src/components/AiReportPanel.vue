@@ -60,7 +60,7 @@ const sections = computed(() => {
 .header h3 {
   margin: 0;
   font-size: 18px;
-  color: #0f766e;
+  color: var(--app-primary);
 }
 .time {
   font-size: 12px;

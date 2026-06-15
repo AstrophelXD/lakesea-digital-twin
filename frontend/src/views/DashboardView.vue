@@ -26,7 +26,7 @@ let resourceChart: echarts.ECharts | null = null
 let alarmChart: echarts.ECharts | null = null
 
 const statCards = [
-  { key: 'todayReservations', label: '今日预约数', color: '#0f766e', icon: '📅' },
+  { key: 'todayReservations', label: '今日预约数', color: '#2563eb', icon: '📅' },
   { key: 'runningExperiments', label: '运行中试验', color: '#2563eb', icon: '🔬' },
   { key: 'availableResources', label: '可用资源数', color: '#7c3aed', icon: '📦' },
   { key: 'pendingAlarms', label: '待处理告警', color: '#dc2626', icon: '🔔' },

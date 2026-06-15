@@ -119,8 +119,8 @@ class ArchiveExportService:
   <title>{title}</title>
   <style>
     body {{ font-family: "Segoe UI", sans-serif; max-width: 860px; margin: 2rem auto; line-height: 1.7; color: #374151; }}
-    h1 {{ color: #0f766e; margin-bottom: 0.25rem; }}
-    h2 {{ color: #0f766e; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-top: 1.5rem; }}
+    h1 {{ color: #2563eb; margin-bottom: 0.25rem; }}
+    h2 {{ color: #2563eb; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-top: 1.5rem; }}
     .meta {{ color: #6b7280; font-size: 14px; margin-bottom: 1.5rem; }}
     .block {{ margin-bottom: 1rem; }}
     table {{ border-collapse: collapse; width: 100%; margin: 0.5rem 0; }}

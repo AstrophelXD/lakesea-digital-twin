@@ -340,8 +340,8 @@ onUnmounted(stopPolling)
   border-radius: 4px;
 }
 .dc-status.on {
-  background: #d1fae5;
-  color: #047857;
+  background: var(--app-primary-light);
+  color: var(--app-primary-dark);
 }
 .dc-status.off {
   background: #f1f5f9;
@@ -451,7 +451,7 @@ onUnmounted(stopPolling)
   color: #94a3b8;
 }
 .cmd-status.ok {
-  color: #059669;
+  color: var(--app-primary);
   font-weight: 600;
 }
 </style>

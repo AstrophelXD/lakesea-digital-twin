@@ -79,7 +79,7 @@ async function onSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f766e 0%, #134e4a 50%, #1e3a5f 100%);
+  background: var(--app-auth-gradient);
 }
 
 .login-card {
@@ -93,7 +93,7 @@ async function onSubmit() {
 h1 {
   margin: 0 0 8px;
   font-size: 22px;
-  color: #0f766e;
+  color: var(--app-primary);
   text-align: center;
 }
 
@@ -124,7 +124,7 @@ h1 {
 }
 
 .footer-link a {
-  color: #0f766e;
+  color: var(--app-primary);
   text-decoration: none;
 }
 
