@@ -408,17 +408,23 @@ onMounted(async () => {
               </el-select>
             </template>
           </el-table-column>
-          <el-table-column label="数量" width="80">
+          <el-table-column label="数量" width="140" align="center">
             <template #default="{ row }">
-              <el-input-number v-model="row.quantity" :min="1" size="small" />
+              <el-input-number
+                v-model="row.quantity"
+                :min="1"
+                size="small"
+                controls-position="right"
+                class="qty-input"
+              />
             </template>
           </el-table-column>
-          <el-table-column label="备注">
+          <el-table-column label="备注" min-width="160">
             <template #default="{ row }">
               <el-input v-model="row.remark" size="small" />
             </template>
           </el-table-column>
-          <el-table-column label="" width="60">
+          <el-table-column label="" width="72" align="center">
             <template #default="{ $index }">
               <el-button
                 link
@@ -426,7 +432,7 @@ onMounted(async () => {
                 :disabled="form.resources.length <= 1"
                 @click="form.resources.splice($index, 1)"
               >
-                删
+                删除
               </el-button>
             </template>
           </el-table-column>
@@ -548,6 +554,12 @@ onMounted(async () => {
 .res-table {
   margin-top: 8px;
   width: 100%;
+}
+.res-table :deep(.qty-input) {
+  width: 120px;
+}
+.res-table :deep(.el-table__body .cell) {
+  overflow: visible;
 }
 .master-card,
 .detail-card {
