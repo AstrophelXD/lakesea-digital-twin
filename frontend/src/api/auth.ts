@@ -19,11 +19,23 @@ export interface ProfileResult {
   menus: string[]
 }
 
+export interface RegisterPayload {
+  username: string
+  password: string
+  realName: string
+  phone?: string
+  email?: string
+}
+
 export function login(username: string, password: string) {
   return request.post<ApiResponse<LoginResult>>('/api/auth/login', {
     username,
     password,
   })
+}
+
+export function register(payload: RegisterPayload) {
+  return request.post<ApiResponse<LoginResult>>('/api/auth/register', payload)
 }
 
 export function getProfile() {

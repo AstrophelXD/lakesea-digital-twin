@@ -19,6 +19,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '登录' },
   },
   {
+    path: '/register',
+    name: 'register',
+    component: () => import('@/views/RegisterView.vue'),
+    meta: { title: '注册' },
+  },
+  {
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
@@ -98,7 +104,7 @@ router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
   document.title = `${to.meta.title || '湖海试验场'} - 数字孪生系统`
 
-  if (to.name === 'login') {
+  if (to.name === 'login' || to.name === 'register') {
     if (userStore.token) {
       next({ name: 'dashboard' })
     } else {

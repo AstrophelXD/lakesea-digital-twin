@@ -65,6 +65,10 @@ async function onSubmit() {
         <p>演示账号（密码均为 123456）：</p>
         <p>student01 · teacher01 · director01 · admin · maintainer01</p>
       </div>
+      <div class="footer-link">
+        还没有账号？
+        <router-link to="/register">立即注册</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -110,5 +114,21 @@ h1 {
   color: #9ca3af;
   line-height: 1.6;
   text-align: center;
+}
+
+.footer-link {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.footer-link a {
+  color: #0f766e;
+  text-decoration: none;
+}
+
+.footer-link a:hover {
+  text-decoration: underline;
 }
 </style>

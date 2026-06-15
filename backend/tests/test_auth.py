@@ -24,3 +24,35 @@ def test_student_cannot_list_users(client, student_token):
     resp = client.get("/api/users", headers=auth(student_token))
     assert resp.status_code == 200
     assert resp.json()["code"] == 403
+
+
+def test_register_success(client):
+    username = "new_student_01"
+    data = api_ok(
+        client.post(
+            "/api/auth/register",
+            json={
+                "username": username,
+                "password": "123456",
+                "realName": "新注册学生",
+                "phone": "13800000001",
+            },
+        )
+    )
+    assert data["token"]
+    assert data["user"]["username"] == username
+    assert data["user"]["realName"] == "新注册学生"
+    assert "STUDENT" in data["user"]["roles"]
+
+
+def test_register_duplicate_username(client):
+    resp = client.post(
+        "/api/auth/register",
+        json={
+            "username": "admin",
+            "password": "123456",
+            "realName": "重复用户",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["code"] != 200

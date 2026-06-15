@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from app.core.deps import CurrentUser, DbSession
 from app.services.audit_service import AuditService
 from app.core.response import success
-from app.schemas.auth_schema import LoginRequest
+from app.schemas.auth_schema import LoginRequest, RegisterRequest
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/api/auth", tags=["认证"])
@@ -12,6 +12,12 @@ router = APIRouter(prefix="/api/auth", tags=["认证"])
 @router.post("/login")
 def login(payload: LoginRequest, db: DbSession):
     result = AuthService(db).login(payload)
+    return success(result.model_dump(by_alias=True))
+
+
+@router.post("/register")
+def register(payload: RegisterRequest, db: DbSession):
+    result = AuthService(db).register(payload)
     return success(result.model_dump(by_alias=True))
 
 
