@@ -86,6 +86,32 @@ class ReservationRepository:
             stmt = stmt.where(ExpReservation.id != exclude_reservation_id)
         return list(self.db.scalars(stmt).unique().all())
 
+    def sum_occupied_quantity(
+        self,
+        resource_id: int,
+        start_time: datetime,
+        end_time: datetime,
+        exclude_reservation_id: Optional[int] = None,
+    ) -> int:
+        stmt = (
+            select(func.coalesce(func.sum(ExpReservationResource.quantity), 0))
+            .select_from(ExpReservationResource)
+            .join(
+                ExpReservation,
+                ExpReservationResource.reservation_id == ExpReservation.id,
+            )
+            .where(
+                ExpReservation.is_deleted == 0,
+                ExpReservation.status.in_(RESERVATION_ACTIVE_STATUSES),
+                ExpReservationResource.resource_id == resource_id,
+                ExpReservationResource.start_time < end_time,
+                ExpReservationResource.end_time > start_time,
+            )
+        )
+        if exclude_reservation_id:
+            stmt = stmt.where(ExpReservation.id != exclude_reservation_id)
+        return int(self.db.scalar(stmt) or 0)
+
     def create(self, reservation: ExpReservation) -> ExpReservation:
         self.db.add(reservation)
         self.db.flush()

@@ -38,6 +38,18 @@ export function roleLabel(role: string) {
   return ROLE_LABELS[role] || role
 }
 
+export const RESOURCE_TYPE_LABELS: Record<string, string> = {
+  POOL: '水池',
+  SHIP: '模型船',
+  SENSOR: '传感器',
+  CAMERA: '摄像头',
+  TOWING: '拖车',
+}
+
+export function resourceTypeLabel(type: string) {
+  return RESOURCE_TYPE_LABELS[type] || type
+}
+
 export function statusTagType(status: string): '' | 'success' | 'warning' | 'danger' | 'info' {
   const map: Record<string, '' | 'success' | 'warning' | 'danger' | 'info'> = {
     DRAFT: 'info',
@@ -46,12 +58,18 @@ export function statusTagType(status: string): '' | 'success' | 'warning' | 'dan
     APPROVED: 'success',
     REJECTED: 'danger',
     CANCELLED: 'info',
-    RUNNING: 'success',
-    READY: '',
+    AVAILABLE: 'success',
+    RESERVED: 'warning',
+    IN_USE: '',
+    MAINTENANCE: 'warning',
+    FAULT: 'danger',
+    DISABLED: 'info',
+    RUNNING: '',
+    READY: 'info',
     PENDING: 'warning',
     RESOLVED: 'success',
   }
-  return map[status] || 'info'
+  return map[status] ?? 'info'
 }
 
 /** 转为后端接受的 ISO 时间字符串 */

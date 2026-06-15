@@ -63,6 +63,7 @@ class ResourceService:
             location=payload.location,
             manager_id=payload.manager_id,
             description=payload.description,
+            max_quantity=payload.max_quantity,
             is_deleted=0,
         )
         self.repo.create(resource)

@@ -149,7 +149,16 @@ function addResourceRow() {
 
 function onResourcePick(row: ReservationResource) {
   const res = allResources.value.find((x) => x.id === row.resourceId)
-  if (res) row.resourceType = res.resourceType
+  if (res) {
+    row.resourceType = res.resourceType
+    const maxQty = res.maxQuantity ?? 1
+    if (row.quantity > maxQty) row.quantity = maxQty
+  }
+}
+
+function maxQtyFor(row: ReservationResource): number {
+  const res = allResources.value.find((x) => x.id === row.resourceId)
+  return res?.maxQuantity ?? 1
 }
 
 function buildPayload() {
@@ -467,6 +476,7 @@ onMounted(async () => {
               <el-input-number
                 v-model="row.quantity"
                 :min="1"
+                :max="maxQtyFor(row)"
                 size="small"
                 controls-position="right"
                 class="qty-input"

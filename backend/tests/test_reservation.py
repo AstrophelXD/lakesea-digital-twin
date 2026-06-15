@@ -150,3 +150,59 @@ def test_teacher_reject_requires_comment(client, student_token, teacher_token, i
     )
     assert resp.status_code == 200
     assert resp.json()["code"] != 200
+
+
+def test_quantity_exceeds_resource_max(client, admin_token, student_token, ids):
+    api_ok(
+        client.put(
+            f"/api/resources/{ids['pool_id']}",
+            json={"maxQuantity": 2},
+            headers=auth(admin_token),
+        )
+    )
+    payload = reservation_payload(
+        ids["teacher_id"],
+        ids["pool_id"],
+        exp_name="数量超限",
+        days_ahead=50,
+        quantity=3,
+    )
+    resp = client.post("/api/reservations", json=payload, headers=auth(student_token))
+    assert resp.status_code == 200
+    assert resp.json()["code"] == 400
+
+
+def test_quantity_sum_conflict(client, admin_token, student_token, ids):
+    api_ok(
+        client.put(
+            f"/api/resources/{ids['pool_id']}",
+            json={"maxQuantity": 2},
+            headers=auth(admin_token),
+        )
+    )
+    create_and_submit_reservation(
+        client,
+        student_token,
+        ids["teacher_id"],
+        ids["pool_id"],
+        exp_name="已占 1 个",
+        days_ahead=55,
+    )
+    payload = reservation_payload(
+        ids["teacher_id"],
+        ids["pool_id"],
+        exp_name="再要 2 个",
+        days_ahead=55,
+        quantity=2,
+    )
+    created = api_ok(
+        client.post("/api/reservations", json=payload, headers=auth(student_token))
+    )
+    conflict = api_ok(
+        client.post(
+            f"/api/reservations/{created['id']}/check-conflicts",
+            headers=auth(student_token),
+        )
+    )
+    assert conflict["hasConflict"] is True
+    assert conflict["conflicts"][0]["resourceId"] == ids["pool_id"]

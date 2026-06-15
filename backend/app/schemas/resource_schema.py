@@ -11,6 +11,7 @@ class ResourceCreate(BaseModel):
     location: Optional[str] = None
     manager_id: Optional[int] = Field(None, alias="managerId")
     description: Optional[str] = None
+    max_quantity: int = Field(1, ge=1, alias="maxQuantity")
 
     model_config = {"populate_by_name": True}
 
@@ -21,6 +22,7 @@ class ResourceUpdate(BaseModel):
     location: Optional[str] = None
     manager_id: Optional[int] = Field(None, alias="managerId")
     description: Optional[str] = None
+    max_quantity: Optional[int] = Field(None, ge=1, alias="maxQuantity")
 
     model_config = {"populate_by_name": True}
 
@@ -39,6 +41,7 @@ class ResourceOut(BaseModel):
     location: Optional[str] = None
     manager_id: Optional[int] = Field(None, serialization_alias="managerId")
     description: Optional[str] = None
+    max_quantity: int = Field(serialization_alias="maxQuantity")
     create_time: Optional[datetime] = Field(None, serialization_alias="createTime")
 
     model_config = {"from_attributes": True, "populate_by_name": True}

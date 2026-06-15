@@ -28,6 +28,7 @@ def ensure_schema() -> None:
 
     patches = [
         ("AI_REPORT", "ANALYSIS_TYPE", 'ALTER TABLE "AI_REPORT" ADD COLUMN "ANALYSIS_TYPE" VARCHAR(50)'),
+        ("LAB_RESOURCE", "MAX_QUANTITY", 'ALTER TABLE "LAB_RESOURCE" ADD COLUMN "MAX_QUANTITY" INTEGER DEFAULT 1 NOT NULL'),
     ]
     with engine.begin() as conn:
         for table, column, ddl in patches:

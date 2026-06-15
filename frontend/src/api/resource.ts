@@ -8,6 +8,7 @@ export interface Resource {
   status: string
   location?: string
   description?: string
+  maxQuantity?: number
 }
 
 export interface PageData<T> {

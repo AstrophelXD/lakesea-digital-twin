@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 class ReservationResourceItem(BaseModel):
     resource_id: int = Field(..., alias="resourceId")
     resource_type: Optional[str] = Field(None, alias="resourceType")
-    quantity: int = 1
+    quantity: int = Field(1, ge=1)
     start_time: datetime = Field(..., alias="startTime")
     end_time: datetime = Field(..., alias="endTime")
     remark: Optional[str] = None

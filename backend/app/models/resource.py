@@ -18,6 +18,7 @@ class LabResource(Base):
     location: Mapped[Optional[str]] = mapped_column("LOCATION", String(200))
     manager_id: Mapped[Optional[int]] = mapped_column("MANAGER_ID", Integer)
     description: Mapped[Optional[str]] = mapped_column("DESCRIPTION", String(500))
+    max_quantity: Mapped[int] = mapped_column("MAX_QUANTITY", Integer, default=1, nullable=False)
     create_time: Mapped[datetime] = mapped_column(
         "CREATE_TIME", DateTime, server_default=func.now()
     )

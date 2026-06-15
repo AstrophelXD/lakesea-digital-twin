@@ -39,13 +39,14 @@ def reservation_payload(
     exp_name: str = "pytest 试验预约",
     days_ahead: int = 10,
     extra_resource_id: int | None = None,
+    quantity: int = 1,
 ) -> dict:
     start, end = reservation_window(days_ahead)
     resources = [
         {
             "resourceId": resource_id,
             "resourceType": "POOL",
-            "quantity": 1,
+            "quantity": quantity,
             "startTime": start.isoformat(),
             "endTime": end.isoformat(),
             "remark": "主资源",

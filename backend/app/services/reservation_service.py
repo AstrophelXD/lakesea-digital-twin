@@ -90,7 +90,13 @@ class ReservationService:
     ) -> List[ExpReservationResource]:
         rows: List[ExpReservationResource] = []
         for item in items:
-            self.resource_service.ensure_bookable(item.resource_id)
+            resource = self.resource_service.ensure_bookable(item.resource_id)
+            max_qty = resource.max_quantity or 1
+            if item.quantity > max_qty:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"资源「{resource.resource_name}」最多可预约 {max_qty} 个",
+                )
             start = item.start_time or default_start
             end = item.end_time or default_end
             if end <= start:
@@ -107,6 +113,24 @@ class ReservationService:
                 )
             )
         return rows
+
+    def _aggregate_resource_demands(
+        self, items: List[ReservationResourceItem]
+    ) -> List[tuple[int, datetime, datetime, int]]:
+        merged: dict[tuple[int, datetime, datetime], int] = {}
+        for item in items:
+            start = item.start_time
+            end = item.end_time
+            if start is None or end is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="资源明细缺少占用时段，请先保存预约的开始/结束时间",
+                )
+            if end <= start:
+                raise HTTPException(status_code=400, detail="资源占用结束时间必须晚于开始时间")
+            key = (item.resource_id, start, end)
+            merged[key] = merged.get(key, 0) + item.quantity
+        return [(rid, s, e, qty) for (rid, s, e), qty in merged.items()]
 
     def _items_from_reservation(self, reservation: ExpReservation) -> List[ReservationResourceItem]:
         """从已保存预约构建冲突检测明细，资源时段缺失时回退到主表计划时段。"""
@@ -130,28 +154,52 @@ class ReservationService:
         exclude_reservation_id: Optional[int] = None,
     ) -> List[ConflictItem]:
         result: List[ConflictItem] = []
-        for item in items:
-            start = item.start_time
-            end = item.end_time
-            if start is None or end is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="资源明细缺少占用时段，请先保存预约的开始/结束时间",
-                )
-            if end <= start:
-                raise HTTPException(status_code=400, detail="资源占用结束时间必须晚于开始时间")
-            conflicts = self.repo.find_conflicts(
-                item.resource_id, start, end, exclude_reservation_id
-            )
-            resource = self.resource_repo.get_by_id(item.resource_id)
-            name = resource.resource_name if resource else str(item.resource_id)
-            for c in conflicts:
+        for resource_id, start, end, requested_qty in self._aggregate_resource_demands(items):
+            resource = self.resource_repo.get_by_id(resource_id)
+            name = resource.resource_name if resource else str(resource_id)
+            max_qty = (resource.max_quantity if resource else 1) or 1
+            if requested_qty > max_qty:
                 result.append(
                     ConflictItem(
-                        resource_id=item.resource_id,
+                        resource_id=resource_id,
                         resource_name=name,
-                        conflict_reservation_no=c.reservation_no,
-                        conflict_exp_name=c.exp_name,
+                        conflict_reservation_no="—",
+                        conflict_exp_name=f"单条预约数量 {requested_qty} 超过上限 {max_qty}",
+                        start_time=start,
+                        end_time=end,
+                    )
+                )
+                continue
+            occupied = self.repo.sum_occupied_quantity(
+                resource_id, start, end, exclude_reservation_id
+            )
+            if occupied + requested_qty <= max_qty:
+                continue
+            conflicts = self.repo.find_conflicts(
+                resource_id, start, end, exclude_reservation_id
+            )
+            if conflicts:
+                for c in conflicts:
+                    result.append(
+                        ConflictItem(
+                            resource_id=resource_id,
+                            resource_name=name,
+                            conflict_reservation_no=c.reservation_no,
+                            conflict_exp_name=c.exp_name,
+                            start_time=start,
+                            end_time=end,
+                        )
+                    )
+            else:
+                result.append(
+                    ConflictItem(
+                        resource_id=resource_id,
+                        resource_name=name,
+                        conflict_reservation_no="—",
+                        conflict_exp_name=(
+                            f"该时段已占用 {occupied} 个，上限 {max_qty}，"
+                            f"无法再预约 {requested_qty} 个"
+                        ),
                         start_time=start,
                         end_time=end,
                     )
@@ -166,6 +214,11 @@ class ReservationService:
         conflicts = self._collect_conflicts(items, exclude_reservation_id)
         if conflicts:
             first = conflicts[0]
+            if first.conflict_reservation_no == "—":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"资源「{first.resource_name}」数量超限：{first.conflict_exp_name}",
+                )
             raise HTTPException(
                 status_code=400,
                 detail=(
