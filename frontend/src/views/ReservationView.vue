@@ -142,6 +142,11 @@ function syncResourceTimes() {
   })
 }
 
+function addResourceRow() {
+  form.resources.push(emptyResource())
+  syncResourceTimes()
+}
+
 function onResourcePick(row: ReservationResource) {
   const res = allResources.value.find((x) => x.id === row.resourceId)
   if (res) row.resourceType = res.resourceType
@@ -170,31 +175,75 @@ function buildPayload() {
   }
 }
 
-async function saveDraft() {
+async function persistDraft(options?: { closeForm?: boolean; createIfNew?: boolean }) {
+  const closeForm = options?.closeForm ?? true
+  const createIfNew = options?.createIfNew ?? true
   if (!form.resources.some((r) => r.resourceId)) {
     ElMessage.warning('请添加资源明细')
-    return
+    return false
+  }
+  if (!form.startTime || !form.endTime) {
+    ElMessage.warning('请填写开始/结束时间')
+    return false
   }
   const payload = buildPayload()
   if (editingId.value) {
     await updateReservation(editingId.value, payload)
+  } else if (createIfNew) {
+    const { data } = await createReservation(payload)
+    editingId.value = data.data!.id
   } else {
-    await createReservation(payload)
+    ElMessage.warning('请先保存草稿')
+    return false
   }
-  ElMessage.success('草稿已保存')
-  formVisible.value = false
-  load()
+  if (closeForm) {
+    formVisible.value = false
+    load()
+  }
+  return true
+}
+
+async function saveDraft() {
+  const ok = await persistDraft({ closeForm: true })
+  if (ok) ElMessage.success('草稿已保存')
+}
+
+function formatConflicts(conflicts: { resourceName?: string; conflictReservationNo: string; conflictExpName: string; startTime?: string; endTime?: string }[]) {
+  return conflicts
+    .map(
+      (c) =>
+        `「${c.resourceName}」${c.startTime?.slice(0, 16) || ''} ~ ${c.endTime?.slice(11, 16) || ''} 与 ${c.conflictReservationNo}（${c.conflictExpName}）冲突`,
+    )
+    .join('\n')
+}
+
+async function runConflictCheck(reservationId: number, title = '冲突检测') {
+  const { data: conflictData } = await checkConflicts(reservationId)
+  if (conflictData.data!.hasConflict) {
+    await ElMessageBox.alert(
+      `检测到资源冲突：\n${formatConflicts(conflictData.data!.conflicts)}`,
+      title,
+      { type: 'warning' },
+    )
+    return false
+  }
+  ElMessage.success('未检测到资源冲突')
+  return true
+}
+
+async function onCheckConflictsInForm() {
+  const ok = await persistDraft({ closeForm: false, createIfNew: false })
+  if (!ok || !editingId.value) return
+  await runConflictCheck(editingId.value)
 }
 
 async function onSubmit(row: Reservation) {
-  const { data: conflictData } = await checkConflicts(row.id)
-  if (conflictData.data!.hasConflict) {
-    const list = conflictData.data!.conflicts
-      .map((c) => `「${c.resourceName}」与 ${c.conflictReservationNo}（${c.conflictExpName}）冲突`)
-      .join('\n')
-    await ElMessageBox.alert(`检测到资源冲突：\n${list}`, '冲突检测', { type: 'warning' })
-    return
+  if (formVisible.value && editingId.value === row.id) {
+    const saved = await persistDraft({ closeForm: true })
+    if (!saved) return
   }
+  const ok = await runConflictCheck(row.id)
+  if (!ok) return
   await ElMessageBox.confirm('冲突检测通过。确认提交预约？提交后将进入教师审核。', '提示')
   await submitReservation(row.id)
   ElMessage.success('已提交')
@@ -222,6 +271,10 @@ async function submitApproval() {
     return
   }
   const id = currentDetail.value!.id
+  if (approvalMode.value === 'director' && approvalForm.approved) {
+    const ok = await runConflictCheck(id, '主任审批前冲突检测')
+    if (!ok) return
+  }
   if (approvalMode.value === 'teacher') {
     await teacherReview(id, approvalForm.approved, approvalForm.comment)
   } else {
@@ -389,7 +442,8 @@ onMounted(async () => {
         <el-input v-model="form.planSummary" type="textarea" />
       </el-form-item>
       <el-form-item label="资源明细" required>
-        <el-button size="small" @click="form.resources.push(emptyResource())">添加资源</el-button>
+        <el-button size="small" @click="addResourceRow">添加资源</el-button>
+        <el-button v-if="editingId" size="small" @click="onCheckConflictsInForm">检测冲突</el-button>
         <el-table :data="form.resources" size="small" class="res-table">
           <el-table-column label="资源" width="200">
             <template #default="{ row }">

@@ -107,6 +107,22 @@ class ReservationService:
             )
         return rows
 
+    def _items_from_reservation(self, reservation: ExpReservation) -> List[ReservationResourceItem]:
+        """从已保存预约构建冲突检测明细，资源时段缺失时回退到主表计划时段。"""
+        items: List[ReservationResourceItem] = []
+        for rr in reservation.resources:
+            items.append(
+                ReservationResourceItem(
+                    resource_id=rr.resource_id,
+                    resource_type=rr.resource_type,
+                    quantity=rr.quantity or 1,
+                    start_time=rr.start_time or reservation.start_time,
+                    end_time=rr.end_time or reservation.end_time,
+                    remark=rr.remark,
+                )
+            )
+        return items
+
     def _collect_conflicts(
         self,
         items: List[ReservationResourceItem],
@@ -116,6 +132,13 @@ class ReservationService:
         for item in items:
             start = item.start_time
             end = item.end_time
+            if start is None or end is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="资源明细缺少占用时段，请先保存预约的开始/结束时间",
+                )
+            if end <= start:
+                raise HTTPException(status_code=400, detail="资源占用结束时间必须晚于开始时间")
             conflicts = self.repo.find_conflicts(
                 item.resource_id, start, end, exclude_reservation_id
             )
@@ -160,17 +183,9 @@ class ReservationService:
         if not reservation:
             raise HTTPException(status_code=404, detail="预约不存在")
         self._ensure_can_view(reservation, current_user, roles)
-        items = [
-            ReservationResourceItem(
-                resource_id=rr.resource_id,
-                resource_type=rr.resource_type,
-                quantity=rr.quantity,
-                start_time=rr.start_time,
-                end_time=rr.end_time,
-                remark=rr.remark,
-            )
-            for rr in reservation.resources
-        ]
+        if not reservation.resources:
+            raise HTTPException(status_code=400, detail="请至少添加一条资源明细")
+        items = self._items_from_reservation(reservation)
         conflicts = self._collect_conflicts(items, reservation_id)
         return ConflictCheckResult(has_conflict=len(conflicts) > 0, conflicts=conflicts)
 
@@ -329,18 +344,10 @@ class ReservationService:
             raise HTTPException(status_code=403, detail="仅申请人可提交")
         if reservation.status not in (DRAFT, REJECTED):
             raise HTTPException(status_code=400, detail="当前状态不可提交")
+        if not reservation.resources:
+            raise HTTPException(status_code=400, detail="请至少添加一条资源明细")
 
-        items = [
-            ReservationResourceItem(
-                resource_id=rr.resource_id,
-                resource_type=rr.resource_type,
-                quantity=rr.quantity,
-                start_time=rr.start_time,
-                end_time=rr.end_time,
-                remark=rr.remark,
-            )
-            for rr in reservation.resources
-        ]
+        items = self._items_from_reservation(reservation)
         self._check_conflicts(items, reservation_id)
         reservation.status = PENDING_TEACHER
         reservation.submit_time = datetime.now()
@@ -422,16 +429,9 @@ class ReservationService:
 
         now = datetime.now()
         if payload.approved:
-            items = [
-                ReservationResourceItem(
-                    resource_id=rr.resource_id,
-                    resource_type=rr.resource_type,
-                    quantity=rr.quantity,
-                    start_time=rr.start_time,
-                    end_time=rr.end_time,
-                )
-                for rr in reservation.resources
-            ]
+            if not reservation.resources:
+                raise HTTPException(status_code=400, detail="预约缺少资源明细，无法审批通过")
+            items = self._items_from_reservation(reservation)
             self._check_conflicts(items, reservation_id)
             reservation.status = APPROVED
             reservation.director_approved_by = user.id

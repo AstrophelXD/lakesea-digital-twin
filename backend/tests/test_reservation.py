@@ -83,6 +83,58 @@ def test_resource_conflict_detection(client, student_token, ids):
     assert conflict["conflicts"][0]["resourceId"] == ids["pool_id"]
 
 
+def test_submit_rejects_conflict(client, student_token, ids):
+    create_and_submit_reservation(
+        client,
+        student_token,
+        ids["teacher_id"],
+        ids["pool_id"],
+        exp_name="已占用预约",
+        days_ahead=35,
+    )
+    payload = reservation_payload(
+        ids["teacher_id"],
+        ids["pool_id"],
+        exp_name="提交应被拦截",
+        days_ahead=35,
+    )
+    created = api_ok(
+        client.post("/api/reservations", json=payload, headers=auth(student_token))
+    )
+    resp = client.post(
+        f"/api/reservations/{created['id']}/submit",
+        headers=auth(student_token),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["code"] == 400
+
+
+def test_draft_does_not_block_other_draft(client, student_token, ids):
+    payload_a = reservation_payload(
+        ids["teacher_id"],
+        ids["pool_id"],
+        exp_name="草稿 A",
+        days_ahead=45,
+    )
+    payload_b = reservation_payload(
+        ids["teacher_id"],
+        ids["pool_id"],
+        exp_name="草稿 B",
+        days_ahead=45,
+    )
+    a = api_ok(client.post("/api/reservations", json=payload_a, headers=auth(student_token)))
+    b = api_ok(client.post("/api/reservations", json=payload_b, headers=auth(student_token)))
+    conflict = api_ok(
+        client.post(
+            f"/api/reservations/{b['id']}/check-conflicts",
+            headers=auth(student_token),
+        )
+    )
+    assert conflict["hasConflict"] is False
+    assert a["status"] == "DRAFT"
+    assert b["status"] == "DRAFT"
+
+
 def test_teacher_reject_requires_comment(client, student_token, teacher_token, ids):
     rid = create_and_submit_reservation(
         client,
