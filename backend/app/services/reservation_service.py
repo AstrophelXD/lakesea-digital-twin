@@ -25,6 +25,7 @@ from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.resource_repository import ResourceRepository
 from app.repositories.user_repository import UserRepository
 from app.services.audit_service import AuditService
+from app.services.resource_occupancy_service import ResourceOccupancyService
 from app.schemas.common import PageResult
 from app.schemas.reservation_schema import (
     ApprovalLogOut,
@@ -447,10 +448,12 @@ class ReservationService:
                 is_deleted=0,
             )
             self.experiment_repo.create(task)
+            ResourceOccupancyService(self.db).reserve_for_reservation(reservation_id)
         else:
             reservation.status = REJECTED
             reservation.reject_reason = payload.comment
             result = APPROVAL_REJECTED
+            ResourceOccupancyService(self.db).release_for_reservation(reservation_id)
 
         self.repo.add_approval_log(
             ExpApprovalLog(
@@ -482,6 +485,7 @@ class ReservationService:
         if reservation.status not in (PENDING_TEACHER, PENDING_DIRECTOR):
             raise HTTPException(status_code=400, detail="当前状态不可取消")
         reservation.status = CANCELLED
+        ResourceOccupancyService(self.db).release_for_reservation(reservation_id)
         self.db.commit()
         AuditService(self.db).log_user(
             user,

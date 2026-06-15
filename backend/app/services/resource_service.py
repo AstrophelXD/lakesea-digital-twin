@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.constants import DISABLED, RESOURCE_UNAVAILABLE
+from app.models.constants import DISABLED, IN_USE, RESOURCE_UNAVAILABLE
 from app.models.resource import LabResource
 from app.models.user import SysUser
 from app.repositories.resource_repository import ResourceRepository
@@ -143,5 +143,10 @@ class ResourceService:
             raise HTTPException(
                 status_code=400,
                 detail=f"资源「{resource.resource_name}」当前状态为 {resource.status}，不可预约",
+            )
+        if resource.status == IN_USE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"资源「{resource.resource_name}」使用中，暂不可预约",
             )
         return resource

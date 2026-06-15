@@ -13,6 +13,7 @@ from app.schemas.alarm_schema import AlarmOut
 from app.models.user import SysUser
 from app.repositories.ai_repository import AiReportRepository
 from app.services.audit_service import AuditService
+from app.services.resource_occupancy_service import ResourceOccupancyService
 from app.schemas.archive_schema import (
     AiReportBrief,
     ExperimentFileOut,
@@ -84,6 +85,7 @@ class ExperimentService:
             raise HTTPException(status_code=400, detail="仅已准备状态可启动试验")
         task.status = RUNNING
         task.actual_start_time = datetime.now()
+        ResourceOccupancyService(self.db).mark_in_use_for_task(task_id)
         self.db.commit()
         self.db.refresh(task)
         AuditService(self.db).log_user(
@@ -110,6 +112,7 @@ class ExperimentService:
         reservation = self.reservation_repo.get_by_id(task.reservation_id)
         if reservation:
             reservation.status = "COMPLETED"
+        ResourceOccupancyService(self.db).release_for_task(task_id)
         self.db.commit()
         self.db.refresh(task)
         AuditService(self.db).log_user(
@@ -133,6 +136,7 @@ class ExperimentService:
         reservation = self.reservation_repo.get_by_id(task.reservation_id)
         if reservation:
             reservation.status = "ARCHIVED"
+        ResourceOccupancyService(self.db).release_for_task(task_id)
         self.db.commit()
         self.db.refresh(task)
         AuditService(self.db).log_user(

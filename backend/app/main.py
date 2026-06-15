@@ -32,7 +32,16 @@ from app.core.response import error
 async def lifespan(app: FastAPI):
     # 本地 SQLite：ORM 自动建表；达梦生产请执行 scripts/init_db.sql
     init_db()
+    from app.core.database import SessionLocal
     from app.services.mqtt_service import mqtt_service
+    from app.services.resource_occupancy_service import ResourceOccupancyService
+
+    db = SessionLocal()
+    try:
+        ResourceOccupancyService(db).reconcile_running_tasks()
+        db.commit()
+    finally:
+        db.close()
 
     loop = asyncio.get_running_loop()
     mqtt_service.start(loop)
