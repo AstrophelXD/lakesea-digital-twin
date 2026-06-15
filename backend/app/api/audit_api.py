@@ -20,12 +20,12 @@ def list_operation_logs(
     action: Optional[str] = None,
     user_id: Optional[int] = Query(None, alias="userId"),
     keyword: Optional[str] = None,
-    success: Optional[bool] = None,
+    log_success: Optional[bool] = Query(None, alias="success"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100, alias="pageSize"),
 ):
     result = AuditService(db).list_logs(
-        module, action, user_id, keyword, success, page, page_size
+        module, action, user_id, keyword, log_success, page, page_size
     )
     return success(result.model_dump(by_alias=True))
 
