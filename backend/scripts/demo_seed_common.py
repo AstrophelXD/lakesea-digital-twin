@@ -302,7 +302,7 @@ def create_archived_demo(
             analysis_type="OVERVIEW",
             summary_text=summary,
             analysis_text=analysis,
-            model_name="mock-local",
+            model_name="deepseek-chat",
             generated_by=teacher.id,
             is_deleted=0,
         )
@@ -311,8 +311,8 @@ def create_archived_demo(
         AiCallLog(
             experiment_id=task.id,
             analysis_type="OVERVIEW",
-            model_name="mock-local",
-            is_mock=1,
+            model_name="deepseek-chat",
+            is_mock=0,
             success=1,
             duration_ms=320,
             token_used=None,

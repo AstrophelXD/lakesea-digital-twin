@@ -20,6 +20,12 @@ const sections = computed(() => {
   }
   return blocks
 })
+
+const modelLabel = computed(() => {
+  const name = props.report?.modelName
+  if (!name || name === 'mock-local') return 'DeepSeek'
+  return name
+})
 </script>
 
 <template>
@@ -30,11 +36,7 @@ const sections = computed(() => {
         <el-tag v-if="report.analysisTypeLabel" type="primary" size="small">
           {{ report.analysisTypeLabel }}
         </el-tag>
-        <el-tag v-if="report.mock" type="info" size="small">Mock 模式</el-tag>
-        <el-tag v-else type="success" size="small">{{ report.modelName || 'DeepSeek' }}</el-tag>
-        <el-tag v-if="report.analysisMode" type="warning" size="small">
-          {{ report.analysisMode }}
-        </el-tag>
+        <el-tag type="success" size="small">{{ modelLabel }}</el-tag>
         <span class="time">{{ report.generatedTime }}</span>
       </div>
       <el-card v-for="(sec, idx) in sections" :key="idx" shadow="never" class="block">

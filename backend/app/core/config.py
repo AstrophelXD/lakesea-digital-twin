@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     deepseek_api_key: str = ""
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-chat"
-    mock_ai: bool = True
+    mock_ai: bool = False
 
     # MQTT 模拟接入（默认关闭，使用 WebSocket 内置模拟）
     enable_mqtt: bool = False

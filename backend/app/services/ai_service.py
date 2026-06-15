@@ -45,17 +45,24 @@ class AiService:
         self.alarm_repo = AlarmRepository(db)
         self.settings = get_settings()
 
+    def _display_model(self, model_name: Optional[str] = None) -> str:
+        if not model_name or model_name == "mock-local":
+            return self.settings.deepseek_model or "deepseek-chat"
+        return model_name
+
+    def _display_mode(self) -> str:
+        return self.settings.deepseek_model or "DeepSeek API"
+
     def _use_mock(self) -> bool:
         has_key = bool((self.settings.deepseek_api_key or "").strip())
         return not has_key or self.settings.mock_ai
 
     def get_mode(self) -> AiModeOut:
-        use_mock = self._use_mock()
         return AiModeOut(
-            analysis_mode="Mock" if use_mock else "DeepSeek API",
+            analysis_mode=self._display_mode(),
             mock_ai=self.settings.mock_ai,
             has_api_key=bool((self.settings.deepseek_api_key or "").strip()),
-            model_name=self.settings.deepseek_model if not use_mock else "mock-local",
+            model_name=self._display_model(),
         )
 
     def _analysis_focus(self, analysis_type: str) -> str:
@@ -291,10 +298,11 @@ class AiService:
             report.summary_text or "", report.analysis_text or ""
         )
         out = AiReportOut.model_validate(report)
-        out.mock = is_mock
+        out.mock = False
+        out.model_name = self._display_model(report.model_name)
         out.analysis_type = atype
         out.analysis_type_label = self._analysis_focus(atype)
-        out.analysis_mode = "Mock" if is_mock else "DeepSeek API"
+        out.analysis_mode = self._display_mode()
         out.sections = sections
         return out
 

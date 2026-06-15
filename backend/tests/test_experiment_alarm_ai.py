@@ -79,10 +79,10 @@ def test_monitor_demo_alarm_and_handle(
     api_ok(client.post(f"/api/experiments/{task_id}/finish", headers=auth(admin_token)))
 
 
-def test_ai_mode_mock(client, admin_token):
+def test_ai_mode(client, admin_token):
     mode = api_ok(client.get("/api/ai/mode", headers=auth(admin_token)))
-    assert mode["analysisMode"] == "Mock"
-    assert mode["mockAi"] is True
+    assert mode["analysisMode"] == "deepseek-chat"
+    assert "Mock" not in mode["analysisMode"]
 
 
 def test_ai_generate_and_query_report(
@@ -122,7 +122,7 @@ def test_ai_generate_and_query_report(
         )
     )
     assert generated["experimentId"] == task_id
-    assert generated["mock"] is True
+    assert generated["mock"] is False
     assert generated.get("sections") or generated.get("summaryText")
 
     fetched = api_ok(

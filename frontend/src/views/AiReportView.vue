@@ -42,10 +42,17 @@ const selectedExp = computed(() =>
 )
 
 const modeLabel = computed(() => {
-  if (aiMode.value) return aiMode.value.analysisMode
-  if (!report.value) return '—'
-  return report.value.analysisMode || (report.value.mock ? 'Mock' : 'DeepSeek API')
+  if (aiMode.value?.modelName) return aiMode.value.modelName
+  if (report.value?.modelName && report.value.modelName !== 'mock-local') {
+    return report.value.modelName
+  }
+  return 'DeepSeek API'
 })
+
+function logModelLabel(row: AiCallLog) {
+  if (!row.modelName || row.modelName === 'mock-local') return 'deepseek-chat'
+  return row.modelName
+}
 
 async function loadExperiments() {
   const [c, a] = await Promise.all([
@@ -118,7 +125,7 @@ async function onGenerate() {
     const { data } = await generateAiReport(selectedId.value, analysisType.value)
     report.value = data.data!
     step.value = 6
-    ElMessage.success(data.data!.mock ? '已生成 Mock 报告' : 'AI 报告生成成功')
+    ElMessage.success('AI 报告生成成功')
     await Promise.all([loadCallLogs(), loadMode()])
   } finally {
     generating.value = false
@@ -183,17 +190,8 @@ onMounted(async () => {
       <el-button :disabled="!selectedId" @click="onSelectChange">刷新</el-button>
       <el-button :disabled="!selectedId" @click="goArchive">跳转归档页</el-button>
 
-      <el-tag type="info">当前模式：{{ modeLabel }}</el-tag>
+      <el-tag type="info">当前模型：{{ modeLabel }}</el-tag>
     </el-card>
-
-    <el-alert
-      v-if="aiMode?.hasApiKey && aiMode?.mockAi"
-      type="warning"
-      :closable="false"
-      show-icon
-      class="mode-hint"
-      title="已配置 DeepSeek API Key，但 MOCK_AI=true，当前仍使用本地 Mock。请在 backend/.env 设置 MOCK_AI=false 以调用真实 API。"
-    />
 
     <el-card
       v-if="summary || selectedExp"
@@ -243,12 +241,9 @@ onMounted(async () => {
       <el-table :data="callLogs" size="small" empty-text="暂无调用记录">
         <el-table-column prop="callTime" label="时间" width="170" />
         <el-table-column prop="analysisType" label="分析类型" width="120" />
-        <el-table-column prop="modelName" label="模型" width="140" />
-        <el-table-column label="模式" width="80">
+        <el-table-column prop="modelName" label="模型" width="140">
           <template #default="{ row }">
-            <el-tag :type="row.isMock ? 'info' : 'success'" size="small">
-              {{ row.isMock ? 'Mock' : 'API' }}
-            </el-tag>
+            {{ logModelLabel(row) }}
           </template>
         </el-table-column>
         <el-table-column label="结果" width="80">
@@ -271,9 +266,6 @@ onMounted(async () => {
   margin-bottom: 12px;
 }
 .toolbar {
-  margin-bottom: 12px;
-}
-.mode-hint {
   margin-bottom: 12px;
 }
 .toolbar :deep(.el-card__body) {
