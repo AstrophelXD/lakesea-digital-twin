@@ -11,8 +11,8 @@ const loading = ref(false)
 const formRef = ref<FormInstance>()
 
 const form = reactive({
-  username: 'student01',
-  password: '123456',
+  username: '',
+  password: '',
 })
 
 const rules: FormRules = {
@@ -61,10 +61,6 @@ async function onSubmit() {
           </el-button>
         </el-form-item>
       </el-form>
-      <div class="hint">
-        <p>演示账号（密码均为 123456）：</p>
-        <p>student01 · teacher01 · director01 · admin · maintainer01</p>
-      </div>
       <div class="footer-link">
         还没有账号？
         <router-link to="/register">立即注册</router-link>
@@ -106,14 +102,6 @@ h1 {
 
 .submit-btn {
   width: 100%;
-}
-
-.hint {
-  margin-top: 16px;
-  font-size: 12px;
-  color: #9ca3af;
-  line-height: 1.6;
-  text-align: center;
 }
 
 .footer-link {
